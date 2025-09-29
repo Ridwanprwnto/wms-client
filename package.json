@@ -4,7 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "cross-env NODE_ENV=development vite dev",
+		"dev:prod": "cross-env NODE_ENV=production vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -12,14 +13,31 @@
 		"test": "npm run test:unit -- --run",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"env:dev": "cp .env.development .env",
-		"env:test": "cp .env.test .env",
-		"env:prod": "cp .env.production .env"
+		"env:dev": "cp .env.development .env && cp .env.development .env.local",
+		"env:test": "cp .env.test .env && cp .env.test .env.local",
+		"env:prod": "cp .env.production .env && cp .env.production .env.local",
+		"start": "node build/index.js",
+		"start:prod": "cross-env NODE_ENV=production LOG_LEVEL=INFO node build/index.js",
+		"start:debug": "cross-env NODE_ENV=production LOG_LEVEL=DEBUG node build/index.js",
+		"env:debug": "node scripts/debug-env.js",
+		"logs:test": "node scripts/test-logger.js",
+		"logs:rotate": "node scripts/log-rotation.js",
+		"logs:clean": "rm -rf logs/*.log || del /Q logs\\*.log",
+		"logs:archive": "tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/ || echo 'Archive command not available on Windows'",
+		"logs:monitor": "tail -f logs/$(date +%Y-%m-%d)-info.log || echo 'Monitor command not available on Windows'",
+		"logs:error": "tail -f logs/$(date +%Y-%m-%d)-error.log || echo 'Monitor command not available on Windows'",
+		"logs:stats": "node scripts/log-stats.js",
+		"pm2:start": "pm2 start ecosystem.config.js",
+		"pm2:restart": "pm2 restart wms-client",
+		"pm2:stop": "pm2 stop wms-client",
+		"pm2:logs": "pm2 logs wms-client",
+		"pm2:monit": "pm2 monit"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.22.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
+		"@sveltejs/adapter-node": "^5.3.2",
 		"@sveltejs/kit": "^2.22.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
 		"@tailwindcss/forms": "^0.5.9",
@@ -27,6 +45,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^22",
 		"@vitest/browser": "^3.2.3",
+		"cross-env": "^10.0.0",
 		"eslint": "^9.22.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -47,5 +66,8 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"pm2": "^5.3.0"
 	}
 }
