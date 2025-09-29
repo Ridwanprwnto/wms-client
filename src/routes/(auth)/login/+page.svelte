@@ -79,7 +79,7 @@
 				<Checkbox bind:checked={rememberMe}>Ingat saya</Checkbox>
 			</div>
 
-			<Button type="submit" class="w-full" size="lg">Masuk</Button>
+			<Button type="submit" class="cursor-pointer w-full" size="lg">Masuk</Button>
 		</form>
 
 		<footer

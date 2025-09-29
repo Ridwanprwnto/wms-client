@@ -1,4 +1,5 @@
 // src/routes/logout/+page.server.js
+import { logoutService } from '$lib/services/authService.js';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ cookies, url }) {
@@ -8,14 +9,18 @@ export async function load({ cookies, url }) {
 	// Optional: Call API logout endpoint to invalidate token on server
 	if (token) {
 		try {
-			// If your API has a logout endpoint, call it here
-			// await fetch(`${API_BASE_URL}/auth/logout`, {
-			// 	method: 'POST',
-			// 	headers: {
-			// 		'Authorization': `Bearer ${token}`,
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
+			const result = await logoutService(token);
+
+			if (!result.success) {
+				let errorMessage = result.message || 'Gagal logout ke server';
+
+				console.log('Logout failed:', errorMessage);
+
+				return fail(400, {
+					error: errorMessage,
+					username: username
+				});
+			}
 		} catch (error) {
 			console.error('API logout error:', error);
 			// Continue with local logout even if API call fails
