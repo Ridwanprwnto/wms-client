@@ -24,6 +24,7 @@
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import { showWarning, showSuccess, showError, showInfo } from '$lib/utils/alertUtils.js';
 	import { isDarkMode, toggleDarkMode } from '$lib/stores/themeStore.js';
+	import favicon from '$lib/assets/favicon.svg';
 
 	export let toggleSidebar: () => void;
 
@@ -112,7 +113,7 @@
 
 				<!-- Brand -->
 				<NavBrand href="/dashboard" class="flex items-center">
-					<img src="/src/lib/assets/favicon.svg" class="me-3 h-6 sm:h-9" alt="WMS Logo" />
+					<img src={favicon} class="me-3 h-6 sm:h-9" alt="WMS Logo" />
 					<span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
 						G113 - WMS
 					</span>
@@ -163,7 +164,7 @@
 				<!-- User Avatar -->
 				<Avatar
 					id="avatar-menu"
-					src="/src/lib/assets/favicon.svg"
+					src={favicon}
 					class="cursor-pointer ring-2 ring-transparent hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
 					size="sm"
 				/>
@@ -172,11 +173,7 @@
 				<Dropdown placement="bottom-end" triggeredBy="#avatar-menu" class="w-64 shadow-lg">
 					<DropdownHeader>
 						<div class="flex items-center space-x-3">
-							<Avatar
-								src="/src/lib/assets/favicon.svg"
-								size="md"
-								class="ring-2 ring-white dark:ring-gray-600"
-							/>
+							<Avatar src={favicon} size="md" class="ring-2 ring-white dark:ring-gray-600" />
 							<div class="flex-1 min-w-0">
 								<p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
 									{displayName}
