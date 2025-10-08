@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import { verifyTokenService } from '$lib/services/authService.js';
 import { logger } from '$lib/utils/logger.js';
 import { API_RESPONSE_TIME } from '$env/static/private';
@@ -42,12 +43,8 @@ export async function handle({ event, resolve }) {
 	// Protected routes yang butuh login
 	const protectedRoutes = [
 		'/dashboard',
-		'/users',
-		'/products',
-		'/analytics',
-		'/inventory',
-		'/orders',
-		'/settings',
+		'/planogram/grup-pertemanan',
+		'/planogram/booking-picking',
 		'/profile'
 	];
 
@@ -115,18 +112,6 @@ export async function handle({ event, resolve }) {
 		try {
 			const verification = await verifyTokenService(token);
 			if (!verification.success) {
-				logger.warn('Token verification failed on protected route', {
-					pathname,
-					reason: verification.message,
-					clientIP
-				});
-
-				logger.logSecurity('invalid_token_on_protected_route', 'medium', {
-					pathname,
-					reason: verification.message,
-					clientIP
-				});
-
 				// Token tidak valid, hapus dan redirect ke login
 				event.cookies.delete('token', { path: '/' });
 				event.cookies.delete('user', { path: '/' });
@@ -135,34 +120,74 @@ export async function handle({ event, resolve }) {
 				throw redirect(307, redirectUrl.toString());
 			}
 
-			// Token valid, simpan user info ke locals
-			event.locals.user = verification.user;
-			event.locals.token = token;
+			let activeToken = token;
+			let userInfo;
+
+			// kalau backend kasih token baru (refresh)
+			if (verification.token && verification.token !== token) {
+				activeToken = verification.token;
+
+				// Cookie options
+				const cookieOptions = {
+					path: '/',
+					httpOnly: true,
+					sameSite: 'strict',
+					secure: !dev, // secure di production, tidak secure di development
+					maxAge: 60 * 60 * 24 // 24 jam
+				};
+	
+				// Simpan token ke cookie
+				cookies.set('token', activeToken, cookieOptions);
+		
+
+				// Simpan user info
+				if (verification.user && typeof verification.user === 'object') {
+					// Gunakan user info dari API dengan fallback values
+					userInfo = {
+						username: verification.user.username || username,
+						id: verification.user.id || null,
+						email: verification.user.email || null,
+						role: verification.user.groupName || null,
+						officecode: verification.user.officeCode || null,
+						officename: verification.user.officeName || null,
+						deptcode: verification.user.deptCode || null,
+						deptname: verification.user.deptName || null,
+						divcode: verification.user.divCode || null,
+						divname: verification.user.divName || null,
+						...verification.user, // spread user data dari API
+						loginTime: new Date().toISOString()
+					};
+				}
+		
+				logger.info('Token refreshed successfully', {
+					username: verification.user?.username
+				});
+
+				try {
+					event.cookies.set('user', JSON.stringify(userInfo), cookieOptions);
+					logger.info('User info saved to cookie:', {
+						username: userInfo.username,
+						role: userInfo.role
+					});
+				} catch (cookieError) {
+					logger.error('Failed to save user info to cookie:', { cookieError });
+					// Tetap lanjut login meski gagal simpan user info
+				}
+			}
+
+			// simpan ke locals
+			event.locals.token = activeToken;
+			event.locals.user = userInfo;
 
 			logger.info('Protected route access granted', {
 				pathname,
-				username: verification.user?.username,
-				role: verification.user?.groupName
+				username: userInfo.username,
+				role: userInfo.groupName
 			});
+			
 		} catch (error) {
-			// Jika error adalah redirect, lempar ulang
-			if (error.status === 307) {
-				throw error;
-			}
-
-			logger.error('Token verification error in protected route', error, {
-				pathname,
-				clientIP,
-				hasToken: !!token
-			});
-
-			logger.logSecurity('token_verification_error', 'high', {
-				pathname,
-				error: error.message,
-				clientIP
-			});
-			// Jika ada network error, biarkan request lanjut dengan token yang ada
-			// Tapi log error untuk monitoring
+			if (error.status === 307) throw error;
+			logger.error( error?.error || 'Token verification error');
 		}
 	}
 

@@ -76,15 +76,6 @@ export const actions = {
 					...result.user, // spread user data dari API
 					loginTime: new Date().toISOString()
 				};
-			} else {
-				// Fallback user info
-				userInfo = {
-					username: username,
-					id: result.user.id || null,
-					email: result.user?.email || null,
-					role: result.user?.role || 'user',
-					loginTime: new Date().toISOString()
-				};
 			}
 
 			try {

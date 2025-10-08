@@ -31,3 +31,6 @@ scripts
 # Logs
 logs
 *.log
+
+#
+package-lock.json

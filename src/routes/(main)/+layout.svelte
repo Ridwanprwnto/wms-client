@@ -68,17 +68,6 @@
 		};
 	});
 
-	// // Welcome message for first-time users
-	// onMount(() => {
-	// 	const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-	// 	if (!hasSeenWelcome) {
-	// 		setTimeout(() => {
-	// 			showInfo('Selamat datang di WMS Dashboard! 👋', 6000);
-	// 			localStorage.setItem('hasSeenWelcome', 'true');
-	// 		}, 1000);
-	// 	}
-	// });
-
 	// Debug reactive statement
 	$: console.log('isSidebarOpen:', isSidebarOpen, 'isLargeScreen:', isLargeScreen);
 
