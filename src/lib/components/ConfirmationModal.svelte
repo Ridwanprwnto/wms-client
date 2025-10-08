@@ -57,11 +57,11 @@
 		</p>
 
 		<div class="flex justify-center space-x-2">
-			<Button onclick={handleConfirm} color={confirmColor} disabled={loading} class="min-w-[100px]">
+			<Button onclick={handleConfirm} color={confirmColor} disabled={loading} class="cursor-pointer min-w-[100px]">
 				{loading ? loadingText : confirmText}
 			</Button>
 
-			<Button onclick={handleCancel} color="alternative" disabled={loading} class="min-w-[100px]">
+			<Button onclick={handleCancel} color="alternative" disabled={loading} class="cursor-pointer min-w-[100px]">
 				{cancelText}
 			</Button>
 		</div>
