@@ -9,7 +9,8 @@
 		DropdownItem,
 		DropdownDivider,
 		Search,
-		Button
+		Button,
+		Drawer
 	} from 'flowbite-svelte';
 	import {
 		BarsOutline,
@@ -17,14 +18,17 @@
 		CogOutline,
 		UserCircleOutline,
 		SunOutline,
-		MoonOutline
+		MoonOutline,
+		InfoCircleSolid,
+		ArrowRightOutline
 	} from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import { showWarning, showSuccess, showError, showInfo } from '$lib/utils/alertUtils.js';
 	import { isDarkMode, toggleDarkMode } from '$lib/stores/themeStore.js';
-	import favicon from '$lib/assets/favicon.svg';
+	import logo from '$lib/assets/logo.png';
+	import avatar from '$lib/assets/avatar.png';
 
 	export let toggleSidebar: () => void;
 
@@ -36,6 +40,8 @@
 	let searchQuery = '';
 	let showLogoutModal = false;
 	let isLoggingOut = false;
+	let isProfileDrawerOpen = false;
+	let drawerPlacement: 'right' | 'left' | 'top' | 'bottom' = 'right';
 
 	// Get user info from page data (passed from layout.server.js)
 	$: userData = $page.data?.user;
@@ -51,11 +57,22 @@
 	$: currentUser = userData || defaultUser;
 	$: displayName = currentUser.name || currentUser.username || 'User';
 	$: displayEmail = currentUser.email || 'user@example.com';
+	$: displayOfficeID = currentUser.officecode;
 
 	// Handle search
 	function handleSearch(event: KeyboardEvent) {
 		if (event.key === 'Enter' && searchQuery.trim()) {
 			showSuccess(`Searching for: "${searchQuery}"`);
+		}
+	}
+
+	// Handle profile click - open drawer
+	function handleProfileClick() {
+		isProfileDrawerOpen = true;
+		// Close dropdown
+		const avatarElement = document.getElementById('avatar-menu');
+		if (avatarElement) {
+			avatarElement.click();
 		}
 	}
 
@@ -113,9 +130,9 @@
 
 				<!-- Brand -->
 				<NavBrand href="/dashboard" class="flex items-center">
-					<img src={favicon} class="me-3 h-6 sm:h-9" alt="WMS Logo" />
+					<img src={logo} class="me-3 h-6 sm:h-9" alt="WMS Logo" />
 					<span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
-						G113 - WMS
+						{displayOfficeID} - WMS
 					</span>
 				</NavBrand>
 
@@ -125,7 +142,7 @@
 						bind:value={searchQuery}
 						on:keydown={handleSearch}
 						size="md"
-						placeholder="Search users, products, orders..."
+						placeholder="Search planogram, orders, etc..."
 						class="w-full"
 					/>
 				</div>
@@ -164,7 +181,7 @@
 				<!-- User Avatar -->
 				<Avatar
 					id="avatar-menu"
-					src={favicon}
+					src={avatar}
 					class="cursor-pointer ring-2 ring-transparent hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
 					size="sm"
 				/>
@@ -173,7 +190,7 @@
 				<Dropdown placement="bottom-end" triggeredBy="#avatar-menu" class="w-64 shadow-lg">
 					<DropdownHeader>
 						<div class="flex items-center space-x-3">
-							<Avatar src={favicon} size="md" class="ring-2 ring-white dark:ring-gray-600" />
+							<Avatar src={avatar} size="md" class="ring-2 ring-white dark:ring-gray-600" />
 							<div class="flex-1 min-w-0">
 								<p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
 									{displayName}
@@ -192,20 +209,15 @@
 
 					<DropdownGroup>
 						<!-- Solusi Sederhana: Gunakan href untuk navigation -->
-						<DropdownItem
-							href="/profile"
-							class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-						>
-							<UserCircleOutline class="w-4 h-4 mr-3 text-gray-400" />
-							<span>Profile</span>
-						</DropdownItem>
-
-						<DropdownItem
-							href="/products"
-							class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-						>
-							<CogOutline class="w-4 h-4 mr-3 text-gray-400" />
-							<span>Settings</span>
+						<DropdownItem class="p-0 cursor-pointer">
+							<div
+								role="button"
+								on:click={handleProfileClick}
+								class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+							>
+								<UserCircleOutline class="w-4 h-4 mr-3 text-gray-400" />
+								<span>Profile</span>
+							</div>
 						</DropdownItem>
 
 						<DropdownDivider />
@@ -229,6 +241,34 @@
 		</div>
 	</div>
 </Navbar>
+
+<!-- Profile Drawer -->
+<Drawer placement={drawerPlacement} bind:open={isProfileDrawerOpen}>
+	<h5
+		class="mb-4 inline-flex items-center text-base font-semibold text-gray-500 dark:text-gray-400"
+	>
+		<InfoCircleSolid class="me-2.5 h-5 w-5" />
+		Profile
+	</h5>
+	<div class="mb-6 flex items-center space-x-4">
+		<Avatar src={avatar} size="md" class="ring-2 ring-gray-300 dark:ring-gray-600" />
+		<div>
+			<p class="text-sm font-semibold text-gray-900 dark:text-white">{displayName}</p>
+			<p class="text-xs text-gray-500 dark:text-gray-400">{displayEmail}</p>
+		</div>
+	</div>
+
+	<div class="mb-6 space-y-2 border-t pt-4 border-gray-200 dark:border-gray-700">
+		<div>
+			<p class="text-xs font-medium text-gray-500 dark:text-gray-400">Office</p>
+			<p class="text-sm text-gray-900 dark:text-white">{displayOfficeID || 'N/A'}</p>
+		</div>
+		<div>
+			<p class="text-xs font-medium text-gray-500 dark:text-gray-400">Username</p>
+			<p class="text-sm text-gray-900 dark:text-white">{currentUser.username || 'N/A'}</p>
+		</div>
+	</div>
+</Drawer>
 
 <!-- Logout Confirmation Modal using Reusable Component -->
 <ConfirmationModal

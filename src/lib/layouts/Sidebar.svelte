@@ -28,19 +28,14 @@
 	$: dashboardActive = currentPath === '/dashboard';
 	$: planogramActive = currentPath.startsWith('/planogram');
 	$: ordersActive = currentPath.startsWith('/orders');
-	$: profileActive = currentPath === '/profile';
-	$: settingsActive = currentPath.startsWith('/settings');
 	$: supportActive = currentPath === '/support';
 
 	// Individual sub-item active states
+	$: allPlanogramActive = currentPath === '/planogram';
 	$: GrupPertemananActive = currentPath === '/planogram/grup-pertemanan';
-	$: BookingPickingActive = currentPath === '/planogram/booking-picking';
+
 	$: allOrdersActive = currentPath === '/orders';
-	$: pendingOrdersActive = currentPath === '/orders/pending';
-	$: processingOrdersActive = currentPath === '/orders/processing';
-	$: completedOrdersActive = currentPath === '/orders/completed';
-	$: generalSettingsActive = currentPath === '/settings';
-	$: securitySettingsActive = currentPath === '/settings/security';
+	$: BookingOrdersActive = currentPath === '/orders/booking-pb';
 
 	// Track which dropdowns are open
 	let openDropdowns = {};
@@ -128,24 +123,24 @@
 
 				{#if openDropdowns['Planogram']}
 					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allPlanogramActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All Planogram', href: '/planogram' }, e)}
+						>
+							<span class="block text-left">All Planogram</span>
+						</button> -->
 						<button
 							type="button"
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'Grup Pertemanan', href: '/planogram/grup-pertemanan' }, e)}
-						>
-							<span class="block text-left">Grup Pertemanan</span>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingPickingActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Booking Picking', href: '/planogram/booking-picking' }, e)}
+								handleNavClick({ label: 'Grup Pertemanan', href: '/planogram/grup-pertemanan' }, e)}
 						>
-							<span class="block text-left">Booking Picking</span>
+							<span class="block text-left">Grup Pertemanan Tablok</span>
 						</button>
 					</div>
 				{/if}
@@ -166,7 +161,6 @@
 							<ClipboardListOutline class="w-5 h-5 text-gray-500" />
 						</div>
 						<span>Orders</span>
-						<Badge color="blue" size="sm" class="ml-2">5</Badge>
 					</div>
 					<ChevronDownOutline
 						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Orders']
@@ -177,7 +171,7 @@
 
 				{#if openDropdowns['Orders']}
 					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<button
+						<!-- <button
 							type="button"
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allOrdersActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
@@ -185,55 +179,19 @@
 							on:click={(e) => handleNavClick({ label: 'All Orders', href: '/orders' }, e)}
 						>
 							<span class="block text-left">All Orders</span>
-						</button>
+						</button> -->
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {pendingOrdersActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'Pending', href: '/orders/pending' }, e)}
-						>
-							<span class="block text-left">Pending</span>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {processingOrdersActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingOrdersActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Processing', href: '/orders/processing' }, e)}
+								handleNavClick({ label: 'Booking PB Toko', href: '/orders/booking-pb' }, e)}
 						>
-							<span class="block text-left">Processing</span>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {completedOrdersActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'Completed', href: '/orders/completed' }, e)}
-						>
-							<span class="block text-left">Completed</span>
+							<span class="block text-left">Booking PB Toko</span>
 						</button>
 					</div>
 				{/if}
-			</div>
-
-			<!-- Profile Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center p-3 text-base font-normal w-full rounded-lg transition-colors duration-200 {profileActive
-						? 'text-white bg-blue-600 hover:bg-blue-700'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={(e) => handleNavClick({ label: 'Profile', href: '/profile' }, e)}
-				>
-					<div class="flex-shrink-0 w-5 h-5 mr-3">
-						<UsersGroupOutline
-							class="w-5 h-5 {profileActive ? 'text-white' : 'text-gray-500'}"
-						/>
-					</div>
-					<span class="flex-1 text-left">Profile</span>
-				</button>
 			</div>
 		</nav>
 
@@ -247,53 +205,6 @@
 			>
 				Settings
 			</p>
-
-			<!-- Settings Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {settingsActive
-						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('Settings')}
-					aria-expanded={openDropdowns['Settings'] ? 'true' : 'false'}
-				>
-					<div class="flex items-center">
-						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<CogOutline class="w-5 h-5 text-gray-500" />
-						</div>
-						<span>Settings</span>
-					</div>
-					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Settings']
-							? 'rotate-180'
-							: ''}"
-					/>
-				</button>
-
-				{#if openDropdowns['Settings']}
-					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {generalSettingsActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'General', href: '/settings' }, e)}
-						>
-							<span class="block text-left">General</span>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {securitySettingsActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'Security', href: '/settings/security' }, e)}
-						>
-							<span class="block text-left">Security</span>
-						</button>
-					</div>
-				{/if}
-			</div>
 
 			<div>
 				<button
@@ -319,12 +230,13 @@
 			<div class="px-3 py-2">
 				<div class="text-xs text-gray-500 dark:text-gray-400 text-center">
 					<p class="mb-1">WMS Dashboard v1.0.0</p>
-					<p>&copy; {new Date().getFullYear()}
-						<a 
+					<p>
+						&copy; {new Date().getFullYear()}
+						<a
 							href="https://ridwanpurwanto-blog.vercel.app"
 							target="_blank"
-							class="text-primary-700 dark:text-primary-500 inline-flex"
-						>Purwanto Ridwan</a>
+							class="text-primary-700 dark:text-primary-500 inline-flex">Purwanto Ridwan</a
+						>
 					</p>
 				</div>
 			</div>

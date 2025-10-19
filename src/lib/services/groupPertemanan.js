@@ -1,7 +1,7 @@
 // src/lib/services/planogram.service.js
 import { buildApiUrl } from '$lib/config/apiConfig.js';
 import { logger } from '$lib/utils/logger.js';
-import { API_KEY } from '$env/static/private';
+import { API_KEY_WHS } from '$env/static/private';
 
 /**
  * Mengambil data tabel lokasi planogram berdasarkan office dan PLU ID
@@ -18,7 +18,7 @@ export async function getTableLokPlanoService(office, pluid) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'apikey': API_KEY
+				'apikey': API_KEY_WHS
 			},
 			body: JSON.stringify({ office, pluid })
 		});
@@ -63,7 +63,7 @@ export async function getZonaRakService(tiperak) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'apikey': API_KEY
+				'apikey': API_KEY_WHS
 			},
 			body: JSON.stringify({ tiperak })
 		});
@@ -109,7 +109,7 @@ export async function getLineRakService(tiperak, linerak) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'apikey': API_KEY
+				'apikey': API_KEY_WHS
 			},
 			body: JSON.stringify({ tiperak, linerak })
 		});
@@ -170,7 +170,7 @@ export async function submitNearestGroupService(payload) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'apikey': API_KEY
+				'apikey': API_KEY_WHS
 			},
 			body: JSON.stringify(transformedData)
 		});

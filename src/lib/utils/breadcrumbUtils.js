@@ -14,75 +14,33 @@ export const routeConfig = {
 		title: 'Dashboard',
 		icon: 'dashboard'
 	},
-	'/products': {
-		title: 'Products',
-		icon: 'products',
+	'/planogram': {
+		title: 'Planogram',
+		icon: 'planogram',
 		parent: '/dashboard'
-	},
-	'/products/create': {
-		title: 'Add New Product',
-		icon: 'add',
-		parent: '/products'
-	},
-	'/products/[id]': {
-		title: 'Product Details',
-		icon: 'view',
-		parent: '/products',
-		dynamic: true
-	},
-	'/products/[id]/edit': {
-		title: 'Edit Product',
-		icon: 'edit',
-		parent: '/products/[id]',
-		dynamic: true
-	},
-	'/users': {
-		title: 'Users',
-		icon: 'users',
-		parent: '/dashboard'
-	},
-	'/users/create': {
-		title: 'Add New User',
-		icon: 'add',
-		parent: '/users'
-	},
-	'/users/[id]': {
-		title: 'User Details',
-		icon: 'view',
-		parent: '/users',
-		dynamic: true
 	},
 	'/orders': {
 		title: 'Orders',
 		icon: 'orders',
 		parent: '/dashboard'
-	},
-	'/orders/[id]': {
-		title: 'Order Details',
-		icon: 'view',
-		parent: '/orders',
-		dynamic: true
-	},
-	'/inventory': {
-		title: 'Inventory',
-		icon: 'inventory',
-		parent: '/dashboard'
-	},
-	'/reports': {
-		title: 'Reports',
-		icon: 'reports',
-		parent: '/dashboard'
-	},
-	'/settings': {
-		title: 'Settings',
-		icon: 'settings',
-		parent: '/dashboard'
-	},
-	'/profile': {
-		title: 'Profile',
-		icon: 'profile',
-		parent: '/dashboard'
 	}
+	// '/products/create': {
+	// 	title: 'Add New Product',
+	// 	icon: 'add',
+	// 	parent: '/products'
+	// },
+	// '/products/[id]': {
+	// 	title: 'Product Details',
+	// 	icon: 'view',
+	// 	parent: '/products',
+	// 	dynamic: true
+	// },
+	// '/products/[id]/edit': {
+	// 	title: 'Edit Product',
+	// 	icon: 'edit',
+	// 	parent: '/products/[id]',
+	// 	dynamic: true
+	// }
 };
 
 /**
@@ -231,17 +189,9 @@ function resolveDynamicTitle(title, pageData) {
 	}
 
 	// Dynamic replacement
-	if (pageData.product?.name && title.includes('Product')) {
-		return title.replace('Product Details', `Product: ${pageData.product.name}`);
-	}
-
-	if (pageData.user?.name && title.includes('User')) {
-		return title.replace('User Details', `User: ${pageData.user.name}`);
-	}
-
-	if (pageData.order?.id && title.includes('Order')) {
-		return title.replace('Order Details', `Order #${pageData.order.id}`);
-	}
+	// if (pageData.order?.id && title.includes('Products')) {
+	// 	return title.replace('Products Details', `Product #${pageData.order.id}`);
+	// }
 
 	return title;
 }

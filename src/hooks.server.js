@@ -44,8 +44,8 @@ export async function handle({ event, resolve }) {
 	const protectedRoutes = [
 		'/dashboard',
 		'/planogram/grup-pertemanan',
-		'/planogram/booking-picking',
-		'/profile'
+		'/orders/booking-pb',
+		'/support'
 	];
 
 	// Jika mengakses logout route, biarkan lewat (akan dihandle oleh +page.server.js)
@@ -135,10 +135,9 @@ export async function handle({ event, resolve }) {
 					secure: !dev, // secure di production, tidak secure di development
 					maxAge: 60 * 60 * 24 // 24 jam
 				};
-	
+
 				// Simpan token ke cookie
-				cookies.set('token', activeToken, cookieOptions);
-		
+				event.cookies.set('token', activeToken, cookieOptions);
 
 				// Simpan user info
 				if (verification.user && typeof verification.user === 'object') {
@@ -158,7 +157,7 @@ export async function handle({ event, resolve }) {
 						loginTime: new Date().toISOString()
 					};
 				}
-		
+
 				logger.info('Token refreshed successfully', {
 					username: verification.user?.username
 				});
@@ -184,10 +183,9 @@ export async function handle({ event, resolve }) {
 				username: userInfo.username,
 				role: userInfo.groupName
 			});
-			
 		} catch (error) {
 			if (error.status === 307) throw error;
-			logger.error( error?.error || 'Token verification error');
+			logger.error(error?.error || 'Token verification error');
 		}
 	}
 

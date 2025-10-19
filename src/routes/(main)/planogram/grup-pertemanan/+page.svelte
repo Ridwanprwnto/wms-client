@@ -1,25 +1,31 @@
 <script>
-	import { 
-		Card, 
-		Heading, 
-		Label, 
-		Input, 
-		Button, 
-		Table, 
-		TableHead, 
-		TableHeadCell, 
-		TableBody, 
-		TableBodyRow, 
-		TableBodyCell, 
-		Modal, 
+	import {
+		Card,
+		Heading,
+		Label,
+		Input,
+		Button,
+		Table,
+		TableHead,
+		TableHeadCell,
+		TableBody,
+		TableBodyRow,
+		TableBodyCell,
+		Modal,
 		Select,
 		Spinner,
-		Toast,
-		MultiSelect 
+		MultiSelect,
+		Hr
 	} from 'flowbite-svelte';
-	import { PlusOutline, TrashBinOutline, CheckCircleSolid, CloseCircleSolid } from 'flowbite-svelte-icons';
+	import { PlusOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { enhance } from '$app/forms';
-	import { showSuccess, showError, showWarning, showInfo, handleApiResponse } from '$lib/utils/alertUtils.js';
+	import {
+		showSuccess,
+		showError,
+		showWarning,
+		showInfo,
+		handleApiResponse
+	} from '$lib/utils/alertUtils.js';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 
 	/** @type {import('./$types').PageData} */
@@ -28,7 +34,7 @@
 	// State variables
 	let pluId = '';
 	let officeId = data.officeId || '';
-	
+
 	// Data Tabel Lokasi
 	let descPlano = '';
 	let itemPlano = '';
@@ -42,13 +48,13 @@
 	// Table rows untuk nearest groups
 	/** @type {Array<{id: number, line: string, rak: string[], lineOptions: Array<{value: string, name: string}>, rakOptions: Array<{value: string, name: string}>}>} */
 	let nearestGroups = [];
-	
+
 	let counter = 0;
 	let showModal = false;
 	let isLoading = false;
 	let isLoadingData = false;
 	let isAddingRow = false;
-	
+
 	/**
 	 * Load planogram data menggunakan form action
 	 */
@@ -84,7 +90,7 @@
 				const apiData = parsedData[2];
 
 				const resolve = (val) => (typeof val === 'number' ? parsedData[val] : val || '');
-				
+
 				descPlano = resolve(apiData.mbr_full_nama);
 				itemPlano = resolve(apiData.pla_zonabarang);
 				tipePlano = resolve(apiData.pla_fk_tipe);
@@ -93,7 +99,7 @@
 				rakPlano = resolve(apiData.pla_rak);
 				shelfPlano = resolve(apiData.pla_shelf);
 				cellPlano = resolve(apiData.pla_cell);
-				
+
 				if (descPlano) {
 					showInfo('Data planogram berhasil dimuat');
 				} else {
@@ -110,7 +116,7 @@
 		} finally {
 			isLoadingData = false;
 		}
-		
+
 		resetTable();
 	}
 
@@ -147,9 +153,9 @@
 
 		isAddingRow = true;
 		counter++;
-		
+
 		let lineOptions = [];
-		
+
 		try {
 			const formData = new FormData();
 			formData.append('tiperak', tipePlano);
@@ -201,13 +207,16 @@
 			isAddingRow = false;
 		}
 
-		nearestGroups = [...nearestGroups, {
-			id: counter,
-			line: '',
-			rak: [],
-			lineOptions,
-			rakOptions: []
-		}];
+		nearestGroups = [
+			...nearestGroups,
+			{
+				id: counter,
+				line: '',
+				rak: [],
+				lineOptions,
+				rakOptions: []
+			}
+		];
 	}
 
 	/**
@@ -215,7 +224,7 @@
 	 */
 	async function onLineChange(index) {
 		const group = nearestGroups[index];
-		
+
 		if (!group.line || !tipePlano) {
 			group.rakOptions = [];
 			nearestGroups = nearestGroups;
@@ -224,7 +233,7 @@
 
 		try {
 			// Temukan label line (huruf) berdasarkan value yang dipilih
-			const selectedLineOption = group.lineOptions.find(opt => opt.value == group.line);
+			const selectedLineOption = group.lineOptions.find((opt) => opt.value == group.line);
 			const lineLabel = selectedLineOption ? selectedLineOption.name : group.line;
 
 			const formData = new FormData();
@@ -254,8 +263,8 @@
 
 				// Pair setiap objek {pla_rak: X} dengan string setelahnya
 				for (let i = 0; i < parsedData.length; i++) {
-				const item = parsedData[i];
-				const nextItem = parsedData[i + 1];
+					const item = parsedData[i];
+					const nextItem = parsedData[i + 1];
 
 					if (typeof item === 'object' && item.pla_rak && typeof nextItem === 'string') {
 						rakOptions.push({
@@ -349,7 +358,6 @@
 	function handlePostingCancel() {
 		showModal = false;
 	}
-
 </script>
 
 <Card size="xl" class="max-w-none p-4 shadow-sm sm:p-6">
@@ -359,26 +367,22 @@
 		</Heading>
 	</div>
 
-	<form 
-		method="POST" 
-		action="?/submit"
-		on:submit|preventDefault={() => showModal = true}
-	>
+	<form method="POST" action="?/submit" on:submit|preventDefault={() => (showModal = true)}>
 		<!-- Hidden inputs untuk form data -->
-		<input type="hidden" name="officeId" value={officeId} readonly/>
-		<input type="hidden" name="pluId" value={pluId} readonly/>
-		<input type="hidden" name="tipePlano" value={tipePlano} readonly/>
+		<input type="hidden" name="officeId" value={officeId} readonly />
+		<input type="hidden" name="pluId" value={pluId} readonly />
+		<input type="hidden" name="tipePlano" value={tipePlano} readonly />
 		<input
 			type="hidden"
 			name="nearestGroups"
 			value={JSON.stringify(
-				nearestGroups.map(g => {
+				nearestGroups.map((g) => {
 					// Ambil nama line (label)
-					const lineName = g.lineOptions.find(opt => opt.value == g.line)?.name || g.line;
+					const lineName = g.lineOptions.find((opt) => opt.value == g.line)?.name || g.line;
 
 					// Ambil nama setiap rak (label)
-					const rakNames = g.rak.map(rVal => {
-						return g.rakOptions.find(opt => opt.value == rVal)?.name || rVal;
+					const rakNames = g.rak.map((rVal) => {
+						return g.rakOptions.find((opt) => opt.value == rVal)?.name || rVal;
 					});
 
 					return { line: lineName, rak: rakNames };
@@ -389,9 +393,13 @@
 
 		<!-- Data Item Section -->
 		<div class="mb-6">
-			<Heading tag="h4" class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300">
-				<span class="mr-2"></span> Data Item
+			<Heading
+				tag="h4"
+				class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300"
+			>
+				<span></span> Data Item
 			</Heading>
+			<Hr />
 			<div class="grid gap-4">
 				<div class="relative">
 					<Label for="plu-id" class="mb-2">PLUID</Label>
@@ -414,9 +422,13 @@
 
 		<!-- Data Tabel Lokasi Section -->
 		<div class="mb-6">
-			<Heading tag="h4" class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300">
-				<span class="mr-2"></span> Data Tabel Lokasi
+			<Heading
+				tag="h4"
+				class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300"
+			>
+				<span></span> Data Tabel Lokasi
 			</Heading>
+			<Hr />
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<div>
 					<Label for="desc-plano" class="mb-2">Deskripsi</Label>
@@ -455,16 +467,26 @@
 
 		<!-- Data Pertemanan Section -->
 		<div class="mb-6">
-			<Heading tag="h4" class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300">
-				<span class="mr-2"></span> Data Pertemanan
+			<Heading
+				tag="h4"
+				class="mb-4 flex items-center text-lg font-semibold text-gray-700 dark:text-gray-300"
+			>
+				<span></span> Data Pertemanan
 			</Heading>
-			
-			<Table striped={true}>
+			<Hr />
+			<Table striped={false}>
 				<TableHead class="text-center">
 					<TableHeadCell>Line</TableHeadCell>
 					<TableHeadCell>Rak</TableHeadCell>
 					<TableHeadCell>
-						<Button class="cursor-pointer" size="xs" color="green" onclick={addNearestGroup} type="button" disabled={isAddingRow}>
+						<Button
+							class="cursor-pointer"
+							size="xs"
+							color="green"
+							onclick={addNearestGroup}
+							type="button"
+							disabled={isAddingRow}
+						>
 							{#if isAddingRow}
 								<Spinner size="4" class="mr-1" />
 							{:else}
@@ -493,7 +515,7 @@
 									/>
 								</TableBodyCell>
 								<TableBodyCell>
-									<MultiSelect 
+									<MultiSelect
 										items={group.rakOptions}
 										bind:value={group.rak}
 										placeholder="Please Select"
@@ -501,7 +523,13 @@
 									/>
 								</TableBodyCell>
 								<TableBodyCell class="text-center">
-									<Button class="cursor-pointer" size="xs" color="red" onclick={() => removeNearestGroup(index)} type="button">
+									<Button
+										class="cursor-pointer"
+										size="xs"
+										color="red"
+										onclick={() => removeNearestGroup(index)}
+										type="button"
+									>
 										<TrashBinOutline class="w-4 h-4" />
 									</Button>
 								</TableBodyCell>
@@ -514,12 +542,12 @@
 
 		<!-- Submit Button -->
 		<div class="flex justify-end">
-			<Button 
-				class="cursor-pointer" 
-				type="button" 
-				color="green" 
+			<Button
+				class="cursor-pointer"
+				type="button"
+				color="green"
 				disabled={isLoading || nearestGroups.length === 0 || showModal}
-				onclick={() => showModal = true}
+				onclick={() => (showModal = true)}
 			>
 				{#if isLoading}
 					<Spinner class="mr-3" size="4" color="white" />
