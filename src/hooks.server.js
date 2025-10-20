@@ -1,5 +1,4 @@
 import { redirect } from '@sveltejs/kit';
-import { dev } from '$app/environment';
 import { verifyTokenService } from '$lib/services/authService.js';
 import { logger } from '$lib/utils/logger.js';
 import { API_RESPONSE_TIME } from '$env/static/private';
@@ -132,7 +131,7 @@ export async function handle({ event, resolve }) {
 					path: '/',
 					httpOnly: true,
 					sameSite: 'strict',
-					secure: !dev, // secure di production, tidak secure di development
+					secure: false, // Set true jika menggunakan HTTPS
 					maxAge: 60 * 60 * 24 // 24 jam
 				};
 

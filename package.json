@@ -12,9 +12,7 @@
 		"test": "npm run test:unit -- --run",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"env:dev": "cp .env.development .env && cp .env.development .env.local",
-		"env:test": "cp .env.test .env && cp .env.test .env.local",
-		"env:prod": "cp .env.production .env && cp .env.production .env.local",
+		"env:test": "cp .env .env.production",
 		"env:debug": "node scripts/debug-env.js",
 		"logs:clean": "rm -rf logs/*.log || del /Q logs\\*.log",
 		"logs:archive": "tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/ || echo 'Archive command not available on Windows'",
@@ -59,6 +57,7 @@
 		]
 	},
 	"dependencies": {
+		"dotenv": "^17.2.3",
 		"pm2": "^5.3.0"
 	}
 }
