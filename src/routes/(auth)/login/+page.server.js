@@ -1,7 +1,6 @@
 // src/routes/(auth)/login/+page.server.js
 import { loginService } from '$lib/services/authService.js';
 import { redirect, fail } from '@sveltejs/kit';
-import { dev } from '$app/environment';
 import { logger } from '$lib/utils/logger.js';
 
 export const actions = {
@@ -51,7 +50,7 @@ export const actions = {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'strict',
-				secure: !dev, // secure di production, tidak secure di development
+				secure: false, // Set true jika menggunakan HTTPS
 				maxAge: 60 * 60 * 24 // 24 jam
 			};
 
