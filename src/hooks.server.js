@@ -1,3 +1,4 @@
+import { COOKIE_OPTIONS } from '$lib/config/cookies.js';
 import { redirect } from '@sveltejs/kit';
 import { verifyTokenService } from '$lib/services/authService.js';
 import { logger } from '$lib/utils/logger.js';
@@ -19,19 +20,32 @@ function getClientIP(event) {
 	}
 }
 
+/**
+ * Helper function untuk delete cookies dengan options yang konsisten
+ * PENTING: Saat delete, jangan kirim maxAge
+ */
+function deleteCookies(event) {
+	const { maxAge, ...deleteCookieOptions } = COOKIE_OPTIONS;
+	
+	event.cookies.delete('token', deleteCookieOptions);
+	event.cookies.delete('user', deleteCookieOptions);
+	
+	logger.info('Cookies deleted with options', { deleteCookieOptions });
+}
+
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
 	const startTime = Date.now();
 	const token = event.cookies.get('token');
 	const { pathname } = event.url;
 	const userAgent = event.request.headers.get('user-agent') || 'unknown';
-	const clientIP = event.getClientAddress();
+	const clientIP = getClientIP(event);
 
 	// Log incoming request
 	logger.http(`${event.request.method} ${pathname}`, {
 		method: event.request.method,
 		pathname,
-		userAgent: userAgent.substring(0, 100), // Limit length
+		userAgent: userAgent.substring(0, 100),
 		clientIP,
 		hasToken: !!token
 	});
@@ -73,8 +87,8 @@ export async function handle({ event, resolve }) {
 					pathname,
 					reason: verification.message
 				});
-				event.cookies.delete('token', { path: '/' });
-				event.cookies.delete('user', { path: '/' });
+				
+				deleteCookies(event);
 			}
 		} catch (error) {
 			// Jika error adalah redirect, lempar ulang
@@ -82,9 +96,9 @@ export async function handle({ event, resolve }) {
 				throw error;
 			}
 			logger.error('Token verification error on login page', error, { pathname });
+			
 			// Jika ada error saat verifikasi, hapus token dan lanjutkan
-			event.cookies.delete('token', { path: '/' });
-			event.cookies.delete('user', { path: '/' });
+			deleteCookies(event);
 		}
 	}
 
@@ -103,46 +117,51 @@ export async function handle({ event, resolve }) {
 				reason: 'no_token'
 			});
 
-			const redirectUrl = new URL('/login', event.url.origin);
-			throw redirect(307, redirectUrl.toString());
+			throw redirect(307, '/login');
 		}
 
-		// Optional: Verify token validity untuk protected routes
+		// Verify token validity untuk protected routes
 		try {
 			const verification = await verifyTokenService(token);
 			if (!verification.success) {
 				// Token tidak valid, hapus dan redirect ke login
-				event.cookies.delete('token', { path: '/' });
-				event.cookies.delete('user', { path: '/' });
-
-				const redirectUrl = new URL('/login', event.url.origin);
-				throw redirect(307, redirectUrl.toString());
+				logger.warn('Invalid token on protected route', {
+					pathname,
+					reason: verification.message
+				});
+				
+				deleteCookies(event);
+				throw redirect(307, '/login');
 			}
 
 			let activeToken = token;
-			let userInfo;
+			let userInfo = null;
 
-			// kalau backend kasih token baru (refresh)
+			// Parse existing user info dari cookie
+			const existingUserCookie = event.cookies.get('user');
+			if (existingUserCookie) {
+				try {
+					userInfo = JSON.parse(existingUserCookie);
+				} catch (e) {
+					logger.error('Failed to parse existing user cookie', e);
+				}
+			}
+
+			// Kalau backend kasih token baru (refresh)
 			if (verification.token && verification.token !== token) {
 				activeToken = verification.token;
 
-				// Cookie options
-				const cookieOptions = {
-					path: '/',
-					httpOnly: true,
-					sameSite: 'strict',
-					secure: false, // Set true jika menggunakan HTTPS
-					maxAge: 60 * 60 * 24 // 24 jam
-				};
-
-				// Simpan token ke cookie
-				event.cookies.set('token', activeToken, cookieOptions);
+				// Simpan token baru ke cookie menggunakan COOKIE_OPTIONS
+				event.cookies.set('token', activeToken, COOKIE_OPTIONS);
+				logger.info('Token refreshed and saved', {
+					oldTokenPrefix: token.substring(0, 10),
+					newTokenPrefix: activeToken.substring(0, 10)
+				});
 
 				// Simpan user info
 				if (verification.user && typeof verification.user === 'object') {
-					// Gunakan user info dari API dengan fallback values
 					userInfo = {
-						username: verification.user.username || username,
+						username: verification.user.username || 'unknown',
 						id: verification.user.id || null,
 						email: verification.user.email || null,
 						role: verification.user.groupName || null,
@@ -152,39 +171,64 @@ export async function handle({ event, resolve }) {
 						deptname: verification.user.deptName || null,
 						divcode: verification.user.divCode || null,
 						divname: verification.user.divName || null,
-						...verification.user, // spread user data dari API
+						...verification.user,
 						loginTime: new Date().toISOString()
 					};
-				}
 
-				logger.info('Token refreshed successfully', {
-					username: verification.user?.username
-				});
-
-				try {
-					event.cookies.set('user', JSON.stringify(userInfo), cookieOptions);
-					logger.info('User info saved to cookie:', {
-						username: userInfo.username,
-						role: userInfo.role
+					logger.info('Token refreshed successfully', {
+						username: userInfo.username
 					});
-				} catch (cookieError) {
-					logger.error('Failed to save user info to cookie:', { cookieError });
-					// Tetap lanjut login meski gagal simpan user info
+
+					try {
+						event.cookies.set('user', JSON.stringify(userInfo), COOKIE_OPTIONS);
+						logger.info('User info saved to cookie', {
+							username: userInfo.username,
+							role: userInfo.role
+						});
+					} catch (cookieError) {
+						logger.error('Failed to save user info to cookie', cookieError);
+					}
 				}
+			} else if (verification.user && !userInfo) {
+				// Jika tidak ada refresh token tapi ada user info dari verification
+				// dan belum ada di cookie, simpan
+				userInfo = {
+					username: verification.user.username || 'unknown',
+					id: verification.user.id || null,
+					email: verification.user.email || null,
+					role: verification.user.groupName || null,
+					officecode: verification.user.officeCode || null,
+					officename: verification.user.officeName || null,
+					deptcode: verification.user.deptCode || null,
+					deptname: verification.user.deptName || null,
+					divcode: verification.user.divCode || null,
+					divname: verification.user.divName || null,
+					...verification.user
+				};
 			}
 
-			// simpan ke locals
+			// Simpan ke locals
 			event.locals.token = activeToken;
 			event.locals.user = userInfo;
 
 			logger.info('Protected route access granted', {
 				pathname,
-				username: userInfo.username,
-				role: userInfo.groupName
+				username: userInfo?.username || 'unknown',
+				role: userInfo?.role || 'unknown'
 			});
 		} catch (error) {
-			if (error.status === 307) throw error;
-			logger.error(error?.error || 'Token verification error');
+			// Jika error adalah redirect, lempar ulang
+			if (error.status === 307) {
+				throw error;
+			}
+			
+			logger.error('Token verification error on protected route', error, {
+				pathname
+			});
+			
+			// Hapus cookies dan redirect ke login
+			deleteCookies(event);
+			throw redirect(307, '/login');
 		}
 	}
 
@@ -202,7 +246,9 @@ export async function handle({ event, resolve }) {
 					pathname,
 					cookieLength: userCookie.length
 				});
-				event.cookies.delete('user', { path: '/' });
+				
+				// Gunakan helper function untuk delete cookies
+				deleteCookies(event);
 			}
 		}
 	}
