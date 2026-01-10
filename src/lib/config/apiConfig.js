@@ -2,10 +2,12 @@
 import { dev } from '$app/environment';
 import {
 	API_LOCAL_IMS_URL,
+	API_LOCAL_WMS_URL,
 	API_LOCAL_WHS_URL,
 	API_LOCAL_DPD_URL,
 	API_GATEWAY_URL,
 	ENDPOINT_IMS,
+	ENDPOINT_WMS,
 	ENDPOINT_WHS,
 	ENDPOINT_DPD
 } from '$env/static/private';
@@ -20,6 +22,11 @@ const apiConfig = {
 			baseUrl: API_LOCAL_IMS_URL,
 			endpoint: ENDPOINT_IMS,
 			fullUrl: `${API_LOCAL_IMS_URL}${ENDPOINT_IMS}`
+		},
+		WMS: {
+			baseUrl: API_LOCAL_WMS_URL,
+			endpoint: ENDPOINT_WMS,
+			fullUrl: `${API_LOCAL_WMS_URL}${ENDPOINT_WMS}`
 		},
 		WHS: {
 			baseUrl: API_LOCAL_WHS_URL,
@@ -39,6 +46,11 @@ const apiConfig = {
 			endpoint: ENDPOINT_IMS,
 			fullUrl: `${API_GATEWAY_URL}${ENDPOINT_IMS}`
 		},
+		WMS: {
+			baseUrl: API_GATEWAY_URL,
+			endpoint: ENDPOINT_WMS,
+			fullUrl: `${API_GATEWAY_URL}${ENDPOINT_WMS}`
+		},
 		WHS: {
 			baseUrl: API_GATEWAY_URL,
 			endpoint: ENDPOINT_WHS,
@@ -57,9 +69,11 @@ const currentConfig = dev ? apiConfig.development : apiConfig.production;
 
 /**
  * Mendapatkan URL lengkap untuk service tertentu
- * @param {'IMS' | 'WHS' | 'DPD'} service - Nama service
+ * @param {'IMS' | 'WMS' | 'WHS' | 'DPD'} service - Nama service
+ * @param {string} path - Path tambahan (misal: '/users/login')
  * @returns {string} URL lengkap service
  */
+
 export function getApiUrl(service) {
 	if (!currentConfig[service]) {
 		throw new Error(`Service "${service}" tidak ditemukan dalam konfigurasi API`);
@@ -67,36 +81,6 @@ export function getApiUrl(service) {
 	return currentConfig[service].fullUrl;
 }
 
-/**
- * Mendapatkan base URL untuk service tertentu
- * @param {'IMS' | 'WHS' | 'DPD'} service - Nama service
- * @returns {string} Base URL service
- */
-export function getBaseUrl(service) {
-	if (!currentConfig[service]) {
-		throw new Error(`Service "${service}" tidak ditemukan dalam konfigurasi API`);
-	}
-	return currentConfig[service].baseUrl;
-}
-
-/**
- * Mendapatkan endpoint path untuk service tertentu
- * @param {'IMS' | 'WHS' | 'DPD'} service - Nama service
- * @returns {string} Endpoint path
- */
-export function getEndpoint(service) {
-	if (!currentConfig[service]) {
-		throw new Error(`Service "${service}" tidak ditemukan dalam konfigurasi API`);
-	}
-	return currentConfig[service].endpoint;
-}
-
-/**
- * Membuat URL lengkap dengan path tambahan
- * @param {'IMS' | 'WHS' | 'DPD'} service - Nama service
- * @param {string} path - Path tambahan (misal: '/users/login')
- * @returns {string} URL lengkap dengan path
- */
 export function buildApiUrl(service, path = '') {
 	const baseUrl = getApiUrl(service);
 	// Pastikan tidak ada double slash

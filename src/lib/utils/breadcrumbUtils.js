@@ -23,6 +23,11 @@ export const routeConfig = {
 		title: 'Orders',
 		icon: 'orders',
 		parent: '/dashboard'
+	},
+	'/ATK': {
+		title: 'ATK',
+		icon: 'orders',
+		parent: '/dashboard'
 	}
 	// '/products/create': {
 	// 	title: 'Add New Product',
