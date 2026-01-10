@@ -14,7 +14,8 @@
 		CogOutline,
 		QuestionCircleOutline,
 		ExclamationCircleOutline,
-		ChevronDownOutline
+		ChevronDownOutline,
+		PaperClipOutline
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
@@ -28,6 +29,7 @@
 	$: dashboardActive = currentPath === '/dashboard';
 	$: planogramActive = currentPath.startsWith('/planogram');
 	$: ordersActive = currentPath.startsWith('/orders');
+	$: atkActive = currentPath.startsWith('/atk');
 	$: supportActive = currentPath === '/support';
 
 	// Individual sub-item active states
@@ -36,6 +38,12 @@
 
 	$: allOrdersActive = currentPath === '/orders';
 	$: BookingOrdersActive = currentPath === '/orders/booking-pb';
+
+	$: allATKActive = currentPath === '/atk';
+	$: PlanogramMasterActive = currentPath === '/atk/planogram-master';
+	$: PlanogramPlacementActive = currentPath === '/atk/planogram-placement';
+	$: PlanogramMappingActive = currentPath === '/atk/planogram-mapping';
+	$: MasterItemActive = currentPath === '/atk/master-item';
 
 	// Track which dropdowns are open
 	let openDropdowns = {};
@@ -189,6 +197,87 @@
 								handleNavClick({ label: 'Booking PB Toko', href: '/orders/booking-pb' }, e)}
 						>
 							<span class="block text-left">Booking PB Toko</span>
+						</button>
+					</div>
+				{/if}
+			</div>
+
+			<!-- ATK Dropdown -->
+			<div>
+				<button
+					type="button"
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {atkActive
+						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					on:click={() => toggleDropdown('ATK')}
+					aria-expanded={openDropdowns['ATK'] ? 'true' : 'false'}
+				>
+					<div class="flex items-center">
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<PaperClipOutline class="w-5 h-5 text-gray-500" />
+						</div>
+						<span>ATK</span>
+					</div>
+					<ChevronDownOutline
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['ATK']
+							? 'rotate-180'
+							: ''}"
+					/>
+				</button>
+
+				{#if openDropdowns['ATK']}
+					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allATKActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All ATK', href: '/atk' }, e)}
+						>
+							<span class="block text-left">All ATK</span>
+						</button> -->
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterItemActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Master Item', href: '/atk/master-item' }, e)}
+						>
+							<span class="block text-left">Master Items</span>
+						</button>
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMasterActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Planogram Master', href: '/atk/planogram-master' }, e)}
+						>
+							<span class="block text-left">Planogram Master</span>
+						</button>
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramPlacementActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick(
+									{ label: 'Planogram Placement', href: '/atk/planogram-placement' },
+									e
+								)}
+						>
+							<span class="block text-left">Planogram Placement</span>
+						</button>
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMappingActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Planogram Mapping', href: '/atk/planogram-mapping' }, e)}
+						>
+							<span class="block text-left">Planogram Mapping</span>
 						</button>
 					</div>
 				{/if}

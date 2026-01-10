@@ -16,11 +16,6 @@
 	});
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-	<title>SvelteKit + Flowbite App</title>
-</svelte:head>
-
 <main class="min-h-screen">
 	<slot />
 </main>

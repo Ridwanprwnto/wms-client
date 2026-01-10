@@ -26,10 +26,10 @@ function getClientIP(event) {
  */
 function deleteCookies(event) {
 	const { maxAge, ...deleteCookieOptions } = COOKIE_OPTIONS;
-	
+
 	event.cookies.delete('token', deleteCookieOptions);
 	event.cookies.delete('user', deleteCookieOptions);
-	
+
 	logger.info('Cookies deleted with options', { deleteCookieOptions });
 }
 
@@ -58,6 +58,10 @@ export async function handle({ event, resolve }) {
 		'/dashboard',
 		'/planogram/grup-pertemanan',
 		'/orders/booking-pb',
+		'/atk/planogram-master',
+		'/atk/planogram-placement',
+		'/atk/planogram-mapping',
+		'/atk/master-item',
 		'/support'
 	];
 
@@ -87,7 +91,7 @@ export async function handle({ event, resolve }) {
 					pathname,
 					reason: verification.message
 				});
-				
+
 				deleteCookies(event);
 			}
 		} catch (error) {
@@ -96,7 +100,7 @@ export async function handle({ event, resolve }) {
 				throw error;
 			}
 			logger.error('Token verification error on login page', error, { pathname });
-			
+
 			// Jika ada error saat verifikasi, hapus token dan lanjutkan
 			deleteCookies(event);
 		}
@@ -129,7 +133,7 @@ export async function handle({ event, resolve }) {
 					pathname,
 					reason: verification.message
 				});
-				
+
 				deleteCookies(event);
 				throw redirect(307, '/login');
 			}
@@ -221,11 +225,11 @@ export async function handle({ event, resolve }) {
 			if (error.status === 307) {
 				throw error;
 			}
-			
+
 			logger.error('Token verification error on protected route', error, {
 				pathname
 			});
-			
+
 			// Hapus cookies dan redirect ke login
 			deleteCookies(event);
 			throw redirect(307, '/login');
@@ -246,7 +250,7 @@ export async function handle({ event, resolve }) {
 					pathname,
 					cookieLength: userCookie.length
 				});
-				
+
 				// Gunakan helper function untuk delete cookies
 				deleteCookies(event);
 			}

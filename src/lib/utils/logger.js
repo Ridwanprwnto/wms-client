@@ -73,7 +73,7 @@ class Logger {
 					this.logDir = this.path.join(process.cwd(), 'logs');
 				}
 
-				// Buat folder logs jika belum ada
+				// Membuat folder logs jika belum ada
 				this.ensureLogDirectory();
 			} catch (error) {
 				console.warn('File logging not available:', error.message);
