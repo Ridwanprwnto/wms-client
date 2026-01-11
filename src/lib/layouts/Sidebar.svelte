@@ -15,7 +15,7 @@
 		QuestionCircleOutline,
 		ExclamationCircleOutline,
 		ChevronDownOutline,
-		PaperClipOutline
+		PaperClipOutline,
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
@@ -27,24 +27,29 @@
 
 	// Direct reactive active states
 	$: dashboardActive = currentPath === '/dashboard';
-	$: planogramActive = currentPath.startsWith('/planogram');
-	$: ordersActive = currentPath.startsWith('/orders');
+	$: settingsActive = currentPath.startsWith('/settings');
 	$: atkActive = currentPath.startsWith('/atk');
 	$: supportActive = currentPath === '/support';
 
-	// Individual sub-item active states
-	$: allPlanogramActive = currentPath === '/planogram';
-	$: GrupPertemananActive = currentPath === '/planogram/grup-pertemanan';
+	$: WSDCActive = currentPath.startsWith('/web-service-dc');
+	$: WSDPDActive = currentPath.startsWith('/web-service-dpd');
 
-	$: allOrdersActive = currentPath === '/orders';
-	$: BookingOrdersActive = currentPath === '/orders/booking-pb';
+	// Individual sub-item active states
+	$: allSettingsActive = currentPath === '/settings';
+	$: MasterCategoryActive = currentPath === '/settings/master-category';
+	$: MasterItemActive = currentPath === '/settings/master-item';
 
 	$: allATKActive = currentPath === '/atk';
 	$: PlanogramMasterActive = currentPath === '/atk/planogram-master';
 	$: PlanogramPlacementActive = currentPath === '/atk/planogram-placement';
 	$: PlanogramMappingActive = currentPath === '/atk/planogram-mapping';
-	$: MasterItemActive = currentPath === '/atk/master-item';
 
+	$: allWSDCActive = currentPath === '/web-service-dc';
+	$: GrupPertemananActive = currentPath === '/web-service-dc/grup-pertemanan';
+
+	$: allWSDPDActive = currentPath === '/web-service-dpd';
+	$: BookingOrdersActive = currentPath === '/web-service-dpd/booking-pb';
+	
 	// Track which dropdowns are open
 	let openDropdowns = {};
 
@@ -106,97 +111,59 @@
 				</button>
 			</div>
 
-			<!-- Planogram Dropdown -->
+			<!-- Settings Dropdown -->
 			<div>
 				<button
 					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {planogramActive
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {settingsActive
 						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
 						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('Planogram')}
-					aria-expanded={openDropdowns['Planogram'] ? 'true' : 'false'}
+					on:click={() => toggleDropdown('Settings')}
+					aria-expanded={openDropdowns['Settings'] ? 'true' : 'false'}
 				>
 					<div class="flex items-center">
 						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<GridOutline class="w-5 h-5 text-gray-500" />
+							<CogOutline class="w-5 h-5 text-gray-500" />
 						</div>
-						<span>Planogram</span>
+						<span>Settings</span>
 					</div>
 					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Planogram']
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Settings']
 							? 'rotate-180'
 							: ''}"
 					/>
 				</button>
 
-				{#if openDropdowns['Planogram']}
+				{#if openDropdowns['Settings']}
 					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
 						<!-- <button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allPlanogramActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allSettingsActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'All Planogram', href: '/planogram' }, e)}
+							on:click={(e) => handleNavClick({ label: 'All Settings', href: '/settings' }, e)}
 						>
-							<span class="block text-left">All Planogram</span>
+							<span class="block text-left">All Settings</span>
 						</button> -->
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterCategoryActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Grup Pertemanan', href: '/planogram/grup-pertemanan' }, e)}
+								handleNavClick({ label: 'Master Category', href: '/settings/master-category' }, e)}
 						>
-							<span class="block text-left">Grup Pertemanan Tablok</span>
+							<span class="block text-left">Master Category</span>
 						</button>
-					</div>
-				{/if}
-			</div>
-
-			<!-- Orders Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {ordersActive
-						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('Orders')}
-					aria-expanded={openDropdowns['Orders'] ? 'true' : 'false'}
-				>
-					<div class="flex items-center">
-						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<ClipboardListOutline class="w-5 h-5 text-gray-500" />
-						</div>
-						<span>Orders</span>
-					</div>
-					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Orders']
-							? 'rotate-180'
-							: ''}"
-					/>
-				</button>
-
-				{#if openDropdowns['Orders']}
-					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<!-- <button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allOrdersActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'All Orders', href: '/orders' }, e)}
-						>
-							<span class="block text-left">All Orders</span>
-						</button> -->
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingOrdersActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterItemActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Booking PB Toko', href: '/orders/booking-pb' }, e)}
+								handleNavClick({ label: 'Master Item', href: '/settings/master-item' }, e)}
 						>
-							<span class="block text-left">Booking PB Toko</span>
+							<span class="block text-left">Master Items</span>
 						</button>
 					</div>
 				{/if}
@@ -238,16 +205,6 @@
 						</button> -->
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterItemActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Master Item', href: '/atk/master-item' }, e)}
-						>
-							<span class="block text-left">Master Items</span>
-						</button>
-						<button
-							type="button"
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMasterActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
@@ -282,6 +239,115 @@
 					</div>
 				{/if}
 			</div>
+		</nav>
+		
+		<!-- Divider -->
+		<hr class="my-4 border-gray-200 dark:border-gray-700" />
+
+		<!-- External Service section -->
+		<nav class="space-y-2">
+			<p
+				class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+			>
+				External Services
+			</p>
+
+			<!-- Web Service DC Dropdown -->
+			<div>
+				<button
+					type="button"
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDCActive
+						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					on:click={() => toggleDropdown('WSDC')}
+					aria-expanded={openDropdowns['WSDC'] ? 'true' : 'false'}
+				>
+					<div class="flex items-center">
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<GridOutline class="w-5 h-5 text-gray-500" />
+						</div>
+						<span>Web Services DC</span>
+					</div>
+					<ChevronDownOutline
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
+							? 'rotate-180'
+							: ''}"
+					/>
+				</button>
+
+				{#if openDropdowns['WSDC']}
+					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDCActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All Web Service DC', href: '/web-service-dc' }, e)}
+						>
+							<span class="block text-left">All Web Service DC</span>
+						</button> -->
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Grup Pertemanan', href: '/web-service-dc/grup-pertemanan' }, e)}
+						>
+							<span class="block text-left">Grup Pertemanan Tablok</span>
+						</button>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Web Service DPD Dropdown -->
+			<div>
+				<button
+					type="button"
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDPDActive
+						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					on:click={() => toggleDropdown('WSDPD')}
+					aria-expanded={openDropdowns['WSDPD'] ? 'true' : 'false'}
+				>
+					<div class="flex items-center">
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<GridOutline class="w-5 h-5 text-gray-500" />
+						</div>
+						<span>Web Services DPD</span>
+					</div>
+					<ChevronDownOutline
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDPD']
+							? 'rotate-180'
+							: ''}"
+					/>
+				</button>
+
+				{#if openDropdowns['WSDPD']}
+					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDPDActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All Web Service DPD', href: '/web-service-dpd' }, e)}
+						>
+							<span class="block text-left">All Web Service DPD</span>
+						</button> -->
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingOrdersActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Booking PB Toko', href: '/web-service-dpd/booking-pb' }, e)}
+						>
+							<span class="block text-left">Booking PB Toko</span>
+						</button>
+					</div>
+				{/if}
+			</div>
+
 		</nav>
 
 		<!-- Divider -->
