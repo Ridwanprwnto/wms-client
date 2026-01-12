@@ -537,7 +537,7 @@
 											value={r.ipAddress}
 											on:input={(e) => updateTarget(r.id, 'ipAddress', e.target.value)}
 											class="w-full px-1 py-1 border dark:border-gray-600 rounded text-xs bg-white dark:bg-gray-700 dark:text-white"
-											placeholder="192.168.1.1"
+											placeholder=""
 										/>
 									{:else}
 										<span class="dark:text-gray-500">-</span>
@@ -550,7 +550,7 @@
 											value={r.deviceId}
 											on:input={(e) => updateTarget(r.id, 'deviceId', e.target.value)}
 											class="w-full px-1 py-1 border dark:border-gray-600 rounded text-xs bg-white dark:bg-gray-700 dark:text-white"
-											placeholder="DEV001"
+											placeholder=""
 										/>
 									{:else}
 										<span class="dark:text-gray-500">-</span>
