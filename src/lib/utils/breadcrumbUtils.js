@@ -14,21 +14,26 @@ export const routeConfig = {
 		title: 'Dashboard',
 		icon: 'dashboard'
 	},
-	'/planogram': {
-		title: 'Planogram',
-		icon: 'planogram',
+	'/settings': {
+		title: 'Settings',
+		icon: 'settings',
 		parent: '/dashboard'
 	},
-	'/orders': {
-		title: 'Orders',
-		icon: 'orders',
-		parent: '/dashboard'
-	},
-	'/ATK': {
+	'/atk': {
 		title: 'ATK',
 		icon: 'orders',
 		parent: '/dashboard'
-	}
+	},
+	'/webservice-dc': {
+		title: 'Webservice DC',
+		icon: 'planogram',
+		parent: '/dashboard'
+	},
+	'/webservice-dpd': {
+		title: 'Webservice DPD',
+		icon: 'orders',
+		parent: '/dashboard'
+	},
 	// '/products/create': {
 	// 	title: 'Add New Product',
 	// 	icon: 'add',

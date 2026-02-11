@@ -16,6 +16,10 @@
 	});
 </script>
 
+<svelte:head>
+	<link rel="icon" href={favicon} />
+</svelte:head>
+
 <main class="min-h-screen">
 	<slot />
 </main>

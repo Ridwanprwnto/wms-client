@@ -1,4 +1,5 @@
 // src/routes/(auth)/login/+page.server.js
+import { COOKIE_OPTIONS } from '$lib/config/cookies.js';
 import { loginService } from '$lib/services/authService.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { logger } from '$lib/utils/logger.js';
@@ -45,17 +46,8 @@ export const actions = {
 
 			logger.info(`Login successful for: ${username}`);
 
-			// Cookie options
-			const cookieOptions = {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: false, // Set true jika menggunakan HTTPS
-				maxAge: 60 * 60 * 24 // 24 jam
-			};
-
 			// Simpan token ke cookie
-			cookies.set('token', result.token, cookieOptions);
+			cookies.set('token', result.token, COOKIE_OPTIONS);
 
 			// Simpan user info
 			let userInfo;
@@ -78,7 +70,7 @@ export const actions = {
 			}
 
 			try {
-				cookies.set('user', JSON.stringify(userInfo), cookieOptions);
+				cookies.set('user', JSON.stringify(userInfo), COOKIE_OPTIONS);
 				logger.info('User info saved to cookie:', {
 					username: userInfo.username,
 					role: userInfo.role

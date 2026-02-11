@@ -7,7 +7,7 @@
 	<div class="items-center justify-between lg:flex">
 		<div class="mt-px mb-4 lg:mb-0">
 			<Heading tag="h3" class="mb-2 -ml-0.25 text-xl font-semibold dark:text-white"
-				>Master Items</Heading
+				>Mutasi Item Planogram</Heading
 			>
 			<span class="text-base font-normal text-gray-500 dark:text-gray-300"> Cooming soon. </span>
 		</div>
