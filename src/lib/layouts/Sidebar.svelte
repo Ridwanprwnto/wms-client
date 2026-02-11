@@ -31,8 +31,8 @@
 	$: atkActive = currentPath.startsWith('/atk');
 	$: supportActive = currentPath === '/support';
 
-	$: WSDCActive = currentPath.startsWith('/web-service-dc');
-	$: WSDPDActive = currentPath.startsWith('/web-service-dpd');
+	$: WSDCActive = currentPath.startsWith('/webservice-dc');
+	$: WSDPDActive = currentPath.startsWith('/webservice-dpd');
 
 	// Individual sub-item active states
 	$: allSettingsActive = currentPath === '/settings';
@@ -45,10 +45,11 @@
 	$: PlanogramMappingActive = currentPath === '/atk/planogram-mapping';
 
 	$: allWSDCActive = currentPath === '/web-service-dc';
-	$: GrupPertemananActive = currentPath === '/web-service-dc/grup-pertemanan';
+	$: GrupPertemananActive = currentPath === '/webservice-dc/grup-pertemanan';
+	$: MutasiItemPlanogramActive = currentPath === '/webservice-dc/mutasi-item-planogram';
 
 	$: allWSDPDActive = currentPath === '/web-service-dpd';
-	$: BookingOrdersActive = currentPath === '/web-service-dpd/booking-pb';
+	$: BookingOrdersActive = currentPath === '/webservice-dpd/booking-pb';
 	
 	// Track which dropdowns are open
 	let openDropdowns = {};
@@ -154,6 +155,7 @@
 								handleNavClick({ label: 'Master Category', href: '/settings/master-category' }, e)}
 						>
 							<span class="block text-left">Master Category</span>
+							<Badge color="blue" size="sm">Beta</Badge>
 						</button>
 						<button
 							type="button"
@@ -164,6 +166,7 @@
 								handleNavClick({ label: 'Master Item', href: '/settings/master-item' }, e)}
 						>
 							<span class="block text-left">Master Items</span>
+							<Badge color="blue" size="sm">Beta</Badge>
 						</button>
 					</div>
 				{/if}
@@ -212,6 +215,7 @@
 								handleNavClick({ label: 'Planogram Master', href: '/atk/planogram-master' }, e)}
 						>
 							<span class="block text-left">Planogram Master</span>
+							<Badge color="purple" size="sm">Soon</Badge>
 						</button>
 						<button
 							type="button"
@@ -225,6 +229,7 @@
 								)}
 						>
 							<span class="block text-left">Planogram Placement</span>
+							<Badge color="purple" size="sm">Soon</Badge>
 						</button>
 						<button
 							type="button"
@@ -235,6 +240,7 @@
 								handleNavClick({ label: 'Planogram Mapping', href: '/atk/planogram-mapping' }, e)}
 						>
 							<span class="block text-left">Planogram Mapping</span>
+							<Badge color="blue" size="sm">Beta</Badge>
 						</button>
 					</div>
 				{/if}
@@ -266,7 +272,7 @@
 						<div class="flex-shrink-0 w-5 h-5 mr-3">
 							<GridOutline class="w-5 h-5 text-gray-500" />
 						</div>
-						<span>Web Services DC</span>
+						<span>Webservices DC</span>
 					</div>
 					<ChevronDownOutline
 						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
@@ -282,9 +288,9 @@
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDCActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'All Web Service DC', href: '/web-service-dc' }, e)}
+							on:click={(e) => handleNavClick({ label: 'All Webservice DC', href: '/webservice-dc' }, e)}
 						>
-							<span class="block text-left">All Web Service DC</span>
+							<span class="block text-left">All Webservice DC</span>
 						</button> -->
 						<button
 							type="button"
@@ -292,9 +298,20 @@
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Grup Pertemanan', href: '/web-service-dc/grup-pertemanan' }, e)}
+								handleNavClick({ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' }, e)}
 						>
 							<span class="block text-left">Grup Pertemanan Tablok</span>
+						</button>
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MutasiItemPlanogramActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Mutasi Item Planogram', href: '/webservice-dc/mutasi-item-planogram' }, e)}
+						>
+							<span class="block text-left">Mutasi Item Planogram</span>
+							<Badge color="purple" size="sm">Soon</Badge>
 						</button>
 					</div>
 				{/if}
@@ -314,7 +331,7 @@
 						<div class="flex-shrink-0 w-5 h-5 mr-3">
 							<GridOutline class="w-5 h-5 text-gray-500" />
 						</div>
-						<span>Web Services DPD</span>
+						<span>Webservices DPD</span>
 					</div>
 					<ChevronDownOutline
 						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDPD']
@@ -330,9 +347,9 @@
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDPDActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'All Web Service DPD', href: '/web-service-dpd' }, e)}
+							on:click={(e) => handleNavClick({ label: 'All Webservice DPD', href: '/webservice-dpd' }, e)}
 						>
-							<span class="block text-left">All Web Service DPD</span>
+							<span class="block text-left">All Webservice DPD</span>
 						</button> -->
 						<button
 							type="button"
@@ -340,7 +357,7 @@
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Booking PB Toko', href: '/web-service-dpd/booking-pb' }, e)}
+								handleNavClick({ label: 'Booking PB Toko', href: '/webservice-dpd/booking-pb' }, e)}
 						>
 							<span class="block text-left">Booking PB Toko</span>
 						</button>

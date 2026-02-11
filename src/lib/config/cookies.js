@@ -1,33 +1,26 @@
 // src/lib/config/cookies.js
 import { dev } from '$app/environment';
+import { NODE_ENV, COOKIE_SECURE, ORIGIN } from '$env/static/private';
 
 /**
  * Deteksi HTTPS dari berbagai sumber environment variable
  */
 function detectHttps() {
-	// 1. Check explicit COOKIE_SECURE env var (highest priority)
-	if (process.env.COOKIE_SECURE !== undefined) {
-		return process.env.COOKIE_SECURE === 'true';
+	// 1. Explicit COOKIE_SECURE (tertinggi priority)
+	const cookieSecure = COOKIE_SECURE;
+	if (cookieSecure !== undefined && cookieSecure !== '') {
+		return cookieSecure === 'true';
 	}
 
-	// 2. Check USE_HTTPS env var
-	if (process.env.USE_HTTPS !== undefined) {
-		return process.env.USE_HTTPS === 'true';
+	// 2. ORIGIN URL check (paling umum di deployment platforms)
+	const origin = ORIGIN;
+	if (origin && typeof origin === 'string') {
+		return origin.toLowerCase().startsWith('https://');
 	}
 
-	// 3. Check PROTOCOL env var
-	if (process.env.PROTOCOL !== undefined) {
-		return process.env.PROTOCOL === 'https';
-	}
-
-	// 4. Check ORIGIN env var (contains protocol)
-	if (process.env.ORIGIN && typeof process.env.ORIGIN === 'string') {
-		return process.env.ORIGIN.startsWith('https://');
-	}
-
-	// 5. Default: false untuk development, false untuk production tanpa config
-	// Safer to default to false untuk menghindari cookies tidak berfungsi
-	return false;
+	// Default: false untuk development, true hanya jika NODE_ENV=production
+	// dan tidak ada env var yang menentukan sebaliknya
+	return !dev && NODE_ENV === 'production';
 }
 
 const isHttps = detectHttps();
@@ -35,18 +28,18 @@ const isHttps = detectHttps();
 export const COOKIE_OPTIONS = {
 	path: '/',
 	httpOnly: true,
-	sameSite: 'strict',
+	sameSite: 'lax',
 	secure: isHttps,
 	maxAge: 60 * 60 * 24 // 24 jam
 };
 
+
 // Export config untuk debugging
 export const cookieConfig = {
 	dev,
-	NODE_ENV: process.env.NODE_ENV,
-	ORIGIN: process.env.ORIGIN,
-	COOKIE_SECURE: process.env.COOKIE_SECURE,
-	PROTOCOL: process.env.PROTOCOL,
+	NODE_ENV: NODE_ENV,
+	ORIGIN: ORIGIN,
+	COOKIE_SECURE: COOKIE_SECURE,
 	secure: isHttps
 };
 

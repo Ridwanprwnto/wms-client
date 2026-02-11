@@ -24,13 +24,13 @@ export const routeConfig = {
 		icon: 'orders',
 		parent: '/dashboard'
 	},
-	'/web-service-dc': {
-		title: 'Web Service DC',
+	'/webservice-dc': {
+		title: 'Webservice DC',
 		icon: 'planogram',
 		parent: '/dashboard'
 	},
-	'/web-service-dpd': {
-		title: 'Web Service DPD',
+	'/webservice-dpd': {
+		title: 'Webservice DPD',
 		icon: 'orders',
 		parent: '/dashboard'
 	},

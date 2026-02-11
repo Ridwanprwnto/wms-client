@@ -60,8 +60,9 @@ export async function handle({ event, resolve }) {
 		'/atk/planogram-placement',
 		'/atk/planogram-mapping',
 		'/settings/master-item',
-		'/web-service-dc/grup-pertemanan',
-		'/web-service-dpd/booking-pb',
+		'/webservice-dc/grup-pertemanan',
+		'/webservice-dc/mutasi-item-planogram',
+		'/webservice-dpd/booking-pb',
 		'/support'
 	];
 
