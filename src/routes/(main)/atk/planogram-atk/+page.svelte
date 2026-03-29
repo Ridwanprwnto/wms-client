@@ -26,10 +26,10 @@
 		UploadOutline,
 		DownloadOutline,
 		CheckCircleOutline,
-		CloseCircleOutline,
-		FileCsvOutline
+		CloseCircleOutline
 	} from 'flowbite-svelte-icons';
 	import { enhance } from '$app/forms';
+	import { showSuccess, showError, showWarning, showInfo } from '$lib/utils/alertUtils.js';
 
 	export let data;
 
@@ -59,10 +59,8 @@
 	let linePlanoList: any[] = [];
 	let tempLinePlano = { rack: '', shelf: '', cell: '', loc: '' };
 
-	// FIX #2: Track previous type_id to detect changes
 	let previousTypeId = '';
 
-	// FIX #2: Watch type_id changes and reset location data when switching RACK <-> FLOOR
 	function handleTypeChange() {
 		const prevTypeName = getTypeName(previousTypeId);
 		const newTypeName = getTypeName(masterPlanoForm.type_id);
@@ -74,12 +72,10 @@
 			(prevTypeName === 'RACK' || prevTypeName === 'FLOOR') &&
 			(newTypeName === 'RACK' || newTypeName === 'FLOOR')
 		) {
-			// Reset semua data lokasi yang sudah ditambahkan
 			linePlanoList = [];
 			tempLinePlano = { rack: '', shelf: '', cell: '', loc: '' };
 			tempLinePlanoErrors = {};
 		}
-
 		previousTypeId = masterPlanoForm.type_id;
 	}
 
@@ -88,10 +84,8 @@
 	let masterDisplayedItems = 10;
 	let masterIsLoading = false;
 
-	// FIX #3: masterHasMore harus reaktif terhadap displayedItems DAN filteredMasterPlano
 	$: masterHasMore = filteredMasterPlano.length > masterDisplayedItems;
 
-	// Reset displayed saat search berubah
 	$: if (masterSearchQuery !== undefined) {
 		masterDisplayedItems = 10;
 	}
@@ -320,6 +314,90 @@
 		return Object.keys(tempLinePlanoErrors).length === 0;
 	}
 
+	// ===================== ENHANCE HANDLERS =====================
+
+	// Digunakan di form Master Planogram (create & update)
+	function enhanceMasterPlano() {
+		const isEdit = masterEditMode;
+		return ({ result, update }: any) => {
+			update({ reset: false });
+			if (result.type === 'success') {
+				if (result.data?.success === false) {
+					showError(result.data?.message || 'Terjadi kesalahan saat menyimpan data');
+				} else {
+					closeMasterPlanoModal();
+					showSuccess(
+						isEdit ? 'Master Planogram berhasil diupdate' : 'Master Planogram berhasil ditambahkan'
+					);
+				}
+			} else if (result.type === 'failure') {
+				showError(result.data?.message || 'Gagal menyimpan Master Planogram');
+			} else {
+				showError('Terjadi kesalahan yang tidak diketahui');
+			}
+		};
+	}
+
+	// Digunakan di form Line Planogram (create & update)
+	function enhanceLinePlano() {
+		const isEdit = lineEditMode;
+		return ({ result, update }: any) => {
+			update({ reset: false });
+			if (result.type === 'success') {
+				if (result.data?.success === false) {
+					showError(result.data?.message || 'Terjadi kesalahan saat menyimpan lokasi');
+				} else {
+					closeLinePlanoModal();
+					showSuccess(isEdit ? 'Lokasi berhasil diupdate' : 'Lokasi berhasil ditambahkan');
+				}
+			} else if (result.type === 'failure') {
+				showError(result.data?.message || 'Gagal menyimpan lokasi');
+			} else {
+				showError('Terjadi kesalahan yang tidak diketahui');
+			}
+		};
+	}
+
+	// Digunakan di tombol hapus lokasi inline (di dalam accordion Master)
+	function enhanceDeleteLinePlanoInline() {
+		return ({ result, update }: any) => {
+			update();
+			if (result.type === 'success') {
+				if (result.data?.success === false) {
+					showError(result.data?.message || 'Gagal menghapus lokasi');
+				} else {
+					showSuccess('Lokasi berhasil dihapus');
+				}
+			} else {
+				showError('Gagal menghapus lokasi');
+			}
+		};
+	}
+
+	// Digunakan di modal konfirmasi delete (Master & Line dari Tab 3)
+	function enhanceDelete() {
+		// Snapshot nilai saat tombol diklik karena deleteItem/deleteAction
+		// bisa berubah setelah closeDeleteModal() dipanggil
+		const action = deleteAction;
+		const label =
+			action === 'deleteMasterPlano'
+				? `Planogram "${deleteItem?.line}"`
+				: `Lokasi "${formatLinePlano(deleteItem || {})}"`;
+		return ({ result, update }: any) => {
+			update();
+			closeDeleteModal();
+			if (result.type === 'success') {
+				if (result.data?.success === false) {
+					showError(result.data?.message || `Gagal menghapus ${label}`);
+				} else {
+					showSuccess(`${label} berhasil dihapus`);
+				}
+			} else {
+				showError(`Gagal menghapus ${label}`);
+			}
+		};
+	}
+
 	// ===================== LINE PLANO =====================
 	let showLinePlanoModal = false;
 	let lineEditMode = false;
@@ -333,10 +411,8 @@
 	let lineDisplayedItems = 10;
 	let lineIsLoading = false;
 
-	// FIX #3: lineHasMore reaktif
 	$: lineHasMore = filteredLinePlano.length > lineDisplayedItems;
 
-	// Reset displayed saat search berubah
 	$: if (lineSearchQuery !== undefined) {
 		lineDisplayedItems = 10;
 	}
@@ -405,10 +481,8 @@
 
 	// ===================== CSV UPLOAD =====================
 	let showCsvModal = false;
-	let csvFileInput: HTMLInputElement;
 	let csvFileName = '';
-	let csvRawRows: any[] = []; // hasil parse mentah
-	let csvPreviewRows: any[] = []; // hasil validasi per baris
+	let csvPreviewRows: any[] = [];
 	let csvIsProcessing = false;
 	let csvUploadDone = false;
 	let csvUploadResult: { success: number; failed: number } | null = null;
@@ -427,15 +501,9 @@
 		errors: string[];
 	}
 
-	// Download template CSV
 	function downloadCsvTemplate() {
 		const header = 'line,rack,shelf,cell,loc';
-		const examples = [
-			'AA,01,1,1,', // RACK contoh
-			'AA,01,1,2,',
-			'ZA,,,,1', // FLOOR contoh
-			'ZA,,,,2'
-		].join('\n');
+		const examples = ['AA,01,1,1,', 'AA,01,1,2,', 'ZA,,,,1', 'ZA,,,,2'].join('\n');
 		const content = header + '\n' + examples;
 		const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);
@@ -444,11 +512,11 @@
 		a.download = 'template_line_planogram.csv';
 		a.click();
 		URL.revokeObjectURL(url);
+		showInfo('Template CSV berhasil diunduh');
 	}
 
 	function openCsvModal() {
 		csvFileName = '';
-		csvRawRows = [];
 		csvPreviewRows = [];
 		csvUploadDone = false;
 		csvUploadResult = null;
@@ -458,7 +526,6 @@
 	function closeCsvModal() {
 		showCsvModal = false;
 		csvFileName = '';
-		csvRawRows = [];
 		csvPreviewRows = [];
 		csvUploadDone = false;
 		csvUploadResult = null;
@@ -482,20 +549,18 @@
 	}
 
 	function parseCsv(text: string) {
-		// Normalize line endings
 		const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
 		if (lines.length < 2) {
 			csvPreviewRows = [];
+			showWarning('File CSV kosong atau tidak memiliki data');
 			return;
 		}
 
-		// Baris pertama = header, skip
 		const dataLines = lines.slice(1).filter((l) => l.trim() !== '');
 		const rows: CsvPreviewRow[] = [];
 
 		for (let i = 0; i < dataLines.length; i++) {
 			const cols = dataLines[i].split(',');
-			// Kolom: line, rack, shelf, cell, loc
 			const line = (cols[0] || '').trim().toUpperCase();
 			const rack = (cols[1] || '').trim();
 			const shelf = (cols[2] || '').trim();
@@ -504,14 +569,12 @@
 
 			const errors: string[] = [];
 
-			// Validasi line
 			if (!line) {
 				errors.push('Kolom "line" kosong');
 			} else if (!/^[A-Z]{2}$/.test(line)) {
 				errors.push(`Line "${line}" tidak valid (harus 2 huruf A-Z)`);
 			}
 
-			// Cari master berdasarkan line
 			const master = data.masterPlano.find((m: any) => m.line === line);
 			let masterId: any = null;
 			let typeLabel = '-';
@@ -538,8 +601,6 @@
 						if (loc) {
 							errors.push('Kolom "loc" harus kosong untuk type RACK');
 						}
-
-						// Cek duplikat di database (hanya jika format valid)
 						if (errors.length === 0) {
 							const dupDb = data.linePlano.some(
 								(lp: any) =>
@@ -562,8 +623,6 @@
 						if (rack || shelf || cell) {
 							errors.push('Kolom rack/shelf/cell harus kosong untuk type FLOOR');
 						}
-
-						// Cek duplikat di database
 						if (errors.length === 0) {
 							const dupDb = data.linePlano.some(
 								(lp: any) => lp.master_id === masterId && lp.loc === loc
@@ -574,7 +633,6 @@
 				}
 			}
 
-			// Cek duplikat antar baris dalam file yang sama
 			if (errors.length === 0 && masterId !== null) {
 				const dupInFile = rows.some((r) => {
 					if (r.master_id !== masterId || r.status === 'error') return false;
@@ -588,7 +646,7 @@
 			}
 
 			rows.push({
-				rowNum: i + 2, // +2 karena baris 1 = header
+				rowNum: i + 2,
 				line,
 				type: typeLabel,
 				rack,
@@ -602,13 +660,24 @@
 		}
 
 		csvPreviewRows = rows;
+
+		// Tampilkan ringkasan hasil parsing via alert
+		const validCount = rows.filter((r) => r.status === 'valid').length;
+		const errorCount = rows.filter((r) => r.status === 'error').length;
+
+		if (errorCount === 0) {
+			showInfo(`${validCount} baris siap diimport`);
+		} else if (validCount === 0) {
+			showError(`Semua ${errorCount} baris mengandung error. Perbaiki file CSV dan upload ulang`);
+		} else {
+			showWarning(`${validCount} baris valid, ${errorCount} baris error akan dilewati`);
+		}
 	}
 
 	$: csvValidCount = csvPreviewRows.filter((r) => r.status === 'valid').length;
 	$: csvErrorCount = csvPreviewRows.filter((r) => r.status === 'error').length;
 	$: csvHasValidRows = csvValidCount > 0;
 
-	// Submit hanya baris yang valid
 	async function submitCsvUpload() {
 		const validRows = csvPreviewRows.filter((r) => r.status === 'valid');
 		if (validRows.length === 0) return;
@@ -624,19 +693,22 @@
 			});
 
 			const result = await res.json();
-			csvUploadDone = true;
-			csvUploadResult = {
-				success: result.data?.inserted ?? validRows.length,
-				failed: result.data?.skipped ?? 0
-			};
+			const inserted = result.data?.inserted ?? validRows.length;
+			const skipped = result.data?.skipped ?? 0;
 
-			// Reload data tanpa close modal agar user lihat hasilnya
-			// Svelte akan update otomatis lewat invalidation jika pakai SvelteKit,
-			// tapi karena dummy data kita perlu trigger reload manual
-			// Gunakan window.location.reload() atau SvelteKit invalidate
-			// (pada implementasi nyata, gunakan invalidate() dari $app/navigation)
+			csvUploadDone = true;
+			csvUploadResult = { success: inserted, failed: skipped };
+
+			if (inserted > 0 && skipped === 0) {
+				showSuccess(`${inserted} lokasi berhasil diimport`);
+			} else if (inserted > 0 && skipped > 0) {
+				showWarning(`${inserted} lokasi berhasil diimport, ${skipped} dilewati`);
+			} else {
+				showError('Import gagal, tidak ada data yang tersimpan');
+			}
 		} catch (err) {
 			console.error(err);
+			showError('Terjadi kesalahan saat mengimport CSV');
 		} finally {
 			csvIsProcessing = false;
 		}
@@ -649,10 +721,6 @@
 
 	function getLinePlanoByMaster(masterId: string) {
 		return data.linePlano.filter((l) => l.master_id === masterId);
-	}
-
-	function getMasterLine(masterId: string) {
-		return data.masterPlano.find((m) => m.id === masterId)?.line || '-';
 	}
 
 	function formatLinePlano(linePlano: any) {
@@ -744,7 +812,6 @@
 						{/if}
 					</div>
 
-					<!-- FIX #3: Gunakan div biasa, spinner di dalam list -->
 					<div class="space-y-2 max-h-[600px] overflow-y-auto pr-2" onscroll={handleMasterScroll}>
 						{#if displayedMasterPlano.length === 0}
 							<div class="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -852,11 +919,11 @@
 																	>
 																		<EditOutline class="h-3 w-3" />
 																	</Button>
+																	<!-- Hapus inline: pakai enhanceDeleteLinePlanoInline -->
 																	<form
 																		method="POST"
 																		action="?/deleteLinePlano"
-																		use:enhance
-																		onsubmit={() => {}}
+																		use:enhance={enhanceDeleteLinePlanoInline}
 																	>
 																		<input type="hidden" name="id" value={lp.id} />
 																		<Button size="xs" color="red" type="submit">
@@ -878,7 +945,6 @@
 								</Accordion>
 							{/each}
 
-							<!-- FIX #3: Spinner harus berada di dalam blok {:else} supaya terlihat -->
 							{#if masterIsLoading}
 								<div class="flex justify-center py-4">
 									<Spinner size="6" color="blue" />
@@ -991,7 +1057,6 @@
 								</div>
 							{/each}
 
-							<!-- FIX #3: Spinner di dalam blok {:else} -->
 							{#if lineIsLoading}
 								<div class="flex justify-center py-4">
 									<Spinner size="6" color="blue" />
@@ -1016,13 +1081,11 @@
 	<form
 		method="POST"
 		action="?/{masterEditMode ? 'updateMasterPlano' : 'createMasterPlano'}"
-		use:enhance
+		use:enhance={enhanceMasterPlano}
 		onsubmit={(e) => {
 			if (!validateMasterForm()) {
 				e.preventDefault();
-				return;
 			}
-			closeMasterPlanoModal();
 		}}
 	>
 		{#if masterEditMode}
@@ -1041,7 +1104,6 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<Label>
 					Type
-					<!-- FIX #1: Saat edit mode, tampilkan sebagai teks readonly (tidak bisa diubah) -->
 					{#if masterEditMode}
 						<div
 							class="mt-1 flex items-center gap-2 p-2.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
@@ -1053,10 +1115,8 @@
 								>(tidak dapat diubah)</span
 							>
 						</div>
-						<!-- Hidden input agar type_id tetap terkirim ke server -->
 						<input type="hidden" name="type_id" value={masterPlanoForm.type_id} />
 					{:else}
-						<!-- FIX #2: Tambahkan onchange handler untuk deteksi perubahan type -->
 						<select
 							name="type_id"
 							bind:value={masterPlanoForm.type_id}
@@ -1188,7 +1248,6 @@
 				</div>
 
 				{#if linePlanoList.length > 0}
-					<!-- FIX #2: Tampilkan notifikasi jika list direset -->
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-2">
 						{#each linePlanoList as lp, index}
 							<div
@@ -1226,13 +1285,11 @@
 	<form
 		method="POST"
 		action="?/{lineEditMode ? 'updateLinePlano' : 'createLinePlano'}"
-		use:enhance
+		use:enhance={enhanceLinePlano}
 		onsubmit={(e) => {
 			if (!validateLinePlanoForm()) {
 				e.preventDefault();
-				return;
 			}
-			closeLinePlanoModal();
 		}}
 	>
 		{#if lineEditMode}
@@ -1381,7 +1438,6 @@
 	</div>
 
 	{#if !csvUploadDone}
-		<!-- Step 1: Upload area & info format -->
 		<div
 			class="mb-5 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700"
 		>
@@ -1413,7 +1469,8 @@
 							(wajib, 2 digit),
 							<code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">shelf</code>
 							& <code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">cell</code> opsional.
-							Biarkan <code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">loc</code> kosong.
+							Biarkan
+							<code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">loc</code> kosong.
 						</li>
 						<li>
 							• Type <strong>FLOOR</strong>: isi
@@ -1433,7 +1490,6 @@
 			</div>
 		</div>
 
-		<!-- File input -->
 		<div class="mb-5">
 			<label
 				class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -1469,10 +1525,8 @@
 			/>
 		</div>
 
-		<!-- Preview tabel -->
 		{#if csvPreviewRows.length > 0}
 			<div class="mb-5">
-				<!-- Summary bar -->
 				<div class="flex items-center gap-3 mb-3">
 					<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
 						Preview: {csvPreviewRows.length} baris
@@ -1584,7 +1638,6 @@
 			<Button color="alternative" onclick={closeCsvModal} type="button">Batal</Button>
 		</div>
 	{:else}
-		<!-- Step 2: Hasil upload -->
 		<div class="text-center py-8">
 			<div
 				class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto mb-4"
@@ -1624,6 +1677,7 @@
 	{/if}
 </Modal>
 
+<!-- ===================== MODAL: KONFIRMASI DELETE ===================== -->
 <Modal bind:open={showDeleteModal} size="xs" autoclose={false}>
 	<div class="text-center">
 		<ExclamationCircleOutline class="mx-auto mb-4 h-12 w-12 text-red-600 dark:text-red-500" />
@@ -1644,7 +1698,7 @@
 				Data yang sudah dihapus tidak dapat dikembalikan.
 			{/if}
 		</p>
-		<form method="POST" action="?/{deleteAction}" use:enhance onsubmit={closeDeleteModal}>
+		<form method="POST" action="?/{deleteAction}" use:enhance={enhanceDelete}>
 			<input type="hidden" name="id" value={deleteItem?.id} />
 			<div class="flex justify-center gap-4">
 				<Button color="red" type="submit">Ya, Hapus</Button>

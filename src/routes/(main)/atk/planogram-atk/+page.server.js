@@ -1,93 +1,108 @@
-// Dummy data master planogram
-let typePlanoData = [
-	{ id: 1, type: 'RACK' },
-	{ id: 2, type: 'FLOOR' }
-];
+// src/routes/(your-route)/+page.server.js
 
-let masterPlanoData = [
-	{ id: 1, line: 'AA', type_id: 1 },
-	{ id: 2, line: 'AB', type_id: 1 },
-	{ id: 3, line: 'AC', type_id: 1 },
-	{ id: 4, line: 'ZA', type_id: 2 },
-	{ id: 5, line: 'ZB', type_id: 2 }
-];
+import {
+	fetchTypePlano,
+	fetchMasterPlano,
+	fetchLinePlano,
+	createMasterPlano,
+	updateMasterPlano,
+	deleteMasterPlano,
+	createLinePlano,
+	updateLinePlano,
+	deleteLinePlano,
+	importLinePlanoBulk
+} from '$lib/services/planogramService.js';
 
-let linePlanoData = [
-	{ id: 1, rack: '01', shelf: '1', cell: '1', loc: null, master_id: 1 },
-	{ id: 2, rack: '01', shelf: '1', cell: '2', loc: null, master_id: 1 },
-	{ id: 3, rack: '02', shelf: '1', cell: '1', loc: null, master_id: 1 },
-	{ id: 4, rack: null, shelf: null, cell: null, loc: '1', master_id: 4 },
-	{ id: 5, rack: null, shelf: null, cell: null, loc: '2', master_id: 4 },
-	{ id: 6, rack: null, shelf: null, cell: null, loc: '1', master_id: 5 }
-];
+import { logger } from '$lib/utils/logger.js';
 
-// Auto increment ID (integer)
-let masterPlanoNextId = 6;
-let linePlanoNextId = 7;
+// =============================================================================
+// HELPER: ERROR SERIALIZER
+// Logger kadang tidak bisa membaca err.message jika yang dilempar bukan
+// instance Error standar (misal plain object atau string).
+// Fungsi ini memastikan pesan error selalu terbaca.
+// =============================================================================
+function serializeError(err) {
+	if (!err) return 'Unknown error';
+	if (typeof err === 'string') return err;
+	if (err instanceof Error) return err.message;
+	// Plain object (misal { message: '...' } dari API)
+	if (err.message) return String(err.message);
+	try {
+		return JSON.stringify(err);
+	} catch {
+		return String(err);
+	}
+}
 
-// ===================== VALIDASI HELPERS =====================
+// =============================================================================
+// VALIDASI HELPERS
+// =============================================================================
 const LINE_REGEX = /^[A-Z]{2}$/;
 const RACK_REGEX = /^\d{2}$/;
 const SHELF_REGEX = /^[1-9]$/;
-const CELL_REGEX = /^([1-9]|[1-9]\d)$/; // 1-99
-const LOC_REGEX = /^([1-9]|[1-9]\d)$/; // 1-99
+const CELL_REGEX = /^([1-9]|[1-9]\d)$/; // 1–99
+const LOC_REGEX = /^([1-9]|[1-9]\d)$/; // 1–99
 
 function validateLine(line) {
 	if (!line) return 'Line wajib diisi';
 	if (!LINE_REGEX.test(line)) return 'Line harus tepat 2 huruf kapital (A-Z)';
 }
-
 function validateRack(rack) {
 	if (!rack) return 'Rack wajib diisi';
-	if (!RACK_REGEX.test(rack)) return 'Rack harus 2 digit angka (00-99)';
+	if (!RACK_REGEX.test(rack)) return 'Rack harus 2 digit angka (00–99)';
 }
-
 function validateShelf(shelf) {
 	if (!shelf) return undefined;
-	if (!SHELF_REGEX.test(shelf)) return 'Shelf harus 1 digit angka (1-9)';
+	if (!SHELF_REGEX.test(shelf)) return 'Shelf harus 1 digit angka (1–9)';
 }
-
 function validateCell(cell) {
 	if (!cell) return undefined;
-	if (!CELL_REGEX.test(cell)) return 'Cell harus angka 1-99';
+	if (!CELL_REGEX.test(cell)) return 'Cell harus angka 1–99';
 }
-
 function validateLoc(loc) {
 	if (!loc) return 'Loc wajib diisi';
-	if (!LOC_REGEX.test(loc)) return 'Loc harus angka 1-99';
+	if (!LOC_REGEX.test(loc)) return 'Loc harus angka 1–99';
 }
 
-/**
- * Cek duplikat lokasi dalam satu master_id.
- * - RACK: kombinasi rack + shelf + cell harus unik
- * - FLOOR: loc harus unik
- */
-function isDuplicateLinePlano(master_id, { rack, shelf, cell, loc }, excludeId = null) {
-	return linePlanoData.some((lp) => {
-		if (lp.master_id !== master_id) return false;
-		if (excludeId !== null && lp.id === excludeId) return false;
-		if (rack) {
-			return (
-				lp.rack === rack && (lp.shelf || '') === (shelf || '') && (lp.cell || '') === (cell || '')
-			);
-		} else {
-			return lp.loc === loc;
-		}
-	});
-}
-
+// =============================================================================
+// LOAD
+// Menggunakan Promise.allSettled agar:
+// - Satu endpoint 404 tidak menggagalkan semua data lain yang berhasil
+// - Error per-endpoint terlog secara spesifik dengan pesan yang jelas
+// =============================================================================
 /** @type {import('./$types').PageServerLoad} */
 export async function load() {
+	const [typeResult, masterResult, lineResult] = await Promise.allSettled([
+		fetchTypePlano(),
+		fetchMasterPlano(),
+		fetchLinePlano()
+	]);
+
+	// Log error per endpoint dengan pesan yang jelas
+	if (typeResult.status === 'rejected') {
+		logger.error(`[load] fetchTypePlano gagal: ${serializeError(typeResult.reason)}`);
+	}
+	if (masterResult.status === 'rejected') {
+		logger.error(`[load] fetchMasterPlano gagal: ${serializeError(masterResult.reason)}`);
+	}
+	if (lineResult.status === 'rejected') {
+		logger.error(`[load] fetchLinePlano gagal: ${serializeError(lineResult.reason)}`);
+	}
+
 	return {
-		typePlano: typePlanoData,
-		masterPlano: masterPlanoData,
-		linePlano: linePlanoData
+		typePlano: typeResult.status === 'fulfilled' ? typeResult.value : [],
+		masterPlano: masterResult.status === 'fulfilled' ? masterResult.value : [],
+		linePlano: lineResult.status === 'fulfilled' ? lineResult.value : []
 	};
 }
 
+// =============================================================================
+// ACTIONS
+// =============================================================================
 /** @type {import('./$types').Actions} */
 export const actions = {
-	// ============ MASTER PLANOGRAM ACTIONS ============
+	// ============ MASTER PLANOGRAM ============
+
 	createMasterPlano: async ({ request }) => {
 		const formData = await request.formData();
 		const line = formData.get('line')?.toString().trim().toUpperCase();
@@ -96,43 +111,25 @@ export const actions = {
 
 		const lineErr = validateLine(line);
 		if (lineErr) return { success: false, message: lineErr };
+		if (!type_id) return { success: false, message: 'Type wajib dipilih' };
 
-		const typeExists = typePlanoData.some((t) => t.id === type_id);
-		if (!typeExists) return { success: false, message: 'Type tidak valid' };
-
-		const isDuplicate = masterPlanoData.some((m) => m.line === line);
-		if (isDuplicate) return { success: false, message: `Line "${line}" sudah digunakan` };
-
-		const newId = masterPlanoNextId++;
-		const newMasterPlano = { id: newId, line, type_id };
-		masterPlanoData.push(newMasterPlano);
-
+		let line_plano = [];
 		if (linePlano_data) {
 			try {
-				const linePlanoList = JSON.parse(linePlano_data);
-				const type = typePlanoData.find((t) => t.id === type_id);
-
-				for (const lp of linePlanoList) {
-					if (type?.type === 'RACK') {
-						if (validateRack(lp.rack) || validateShelf(lp.shelf) || validateCell(lp.cell)) continue;
-					} else if (type?.type === 'FLOOR') {
-						if (validateLoc(lp.loc)) continue;
-					}
-					linePlanoData.push({
-						id: linePlanoNextId++,
-						rack: lp.rack || null,
-						shelf: lp.shelf || null,
-						cell: lp.cell || null,
-						loc: lp.loc || null,
-						master_id: newId
-					});
-				}
-			} catch (error) {
-				console.error('Error parsing line plano data:', error);
+				line_plano = JSON.parse(linePlano_data);
+			} catch {
+				logger.warn('[createMasterPlano] Gagal parse linePlano_data, diabaikan');
 			}
 		}
 
-		return { success: true, message: 'Master Planogram berhasil ditambahkan' };
+		try {
+			await createMasterPlano({ line, type_id, line_plano });
+			return { success: true, message: 'Master Planogram berhasil ditambahkan' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[createMasterPlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
 	updateMasterPlano: async ({ request }) => {
@@ -143,31 +140,34 @@ export const actions = {
 
 		const lineErr = validateLine(line);
 		if (lineErr) return { success: false, message: lineErr };
+		if (!type_id) return { success: false, message: 'Type wajib dipilih' };
 
-		const typeExists = typePlanoData.some((t) => t.id === type_id);
-		if (!typeExists) return { success: false, message: 'Type tidak valid' };
-
-		const isDuplicate = masterPlanoData.some((m) => m.line === line && m.id !== id);
-		if (isDuplicate) return { success: false, message: `Line "${line}" sudah digunakan` };
-
-		const index = masterPlanoData.findIndex((item) => item.id === id);
-		if (index === -1) return { success: false, message: 'Master Planogram tidak ditemukan' };
-
-		masterPlanoData[index] = { ...masterPlanoData[index], line, type_id };
-		return { success: true, message: 'Master Planogram berhasil diupdate' };
+		try {
+			await updateMasterPlano(id, { line, type_id });
+			return { success: true, message: 'Master Planogram berhasil diupdate' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[updateMasterPlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
 	deleteMasterPlano: async ({ request }) => {
 		const formData = await request.formData();
 		const id = Number(formData.get('id'));
 
-		masterPlanoData = masterPlanoData.filter((item) => item.id !== id);
-		linePlanoData = linePlanoData.filter((item) => item.master_id !== id);
-
-		return { success: true, message: 'Master Planogram berhasil dihapus' };
+		try {
+			await deleteMasterPlano(id);
+			return { success: true, message: 'Master Planogram berhasil dihapus' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[deleteMasterPlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
-	// ============ LINE PLANOGRAM ACTIONS ============
+	// ============ LINE PLANOGRAM ============
+
 	createLinePlano: async ({ request }) => {
 		const formData = await request.formData();
 		const master_id = Number(formData.get('master_id'));
@@ -176,38 +176,30 @@ export const actions = {
 		const cell = formData.get('cell')?.toString().trim() || null;
 		const loc = formData.get('loc')?.toString().trim() || null;
 
-		const master = masterPlanoData.find((m) => m.id === master_id);
-		if (!master) return { success: false, message: 'Master Planogram tidak ditemukan' };
+		if (!master_id) return { success: false, message: 'Master Planogram wajib dipilih' };
 
-		const type = typePlanoData.find((t) => t.id === master.type_id);
-
-		if (type?.type === 'RACK') {
+		if (rack) {
 			const rackErr = validateRack(rack);
 			if (rackErr) return { success: false, message: rackErr };
 			const shelfErr = validateShelf(shelf);
 			if (shelfErr) return { success: false, message: shelfErr };
 			const cellErr = validateCell(cell);
 			if (cellErr) return { success: false, message: cellErr };
-
-			if (isDuplicateLinePlano(master_id, { rack, shelf, cell, loc: null })) {
-				return {
-					success: false,
-					message: `Kombinasi Rack-Shelf-Cell ini sudah ada pada Line ${master.line}`
-				};
-			}
-		} else if (type?.type === 'FLOOR') {
+		} else if (loc) {
 			const locErr = validateLoc(loc);
 			if (locErr) return { success: false, message: locErr };
-
-			if (isDuplicateLinePlano(master_id, { rack: null, shelf: null, cell: null, loc })) {
-				return { success: false, message: `Loc "${loc}" sudah ada pada Line ${master.line}` };
-			}
 		} else {
-			if (!rack && !loc) return { success: false, message: 'Rack atau Loc harus diisi' };
+			return { success: false, message: 'Rack atau Loc harus diisi' };
 		}
 
-		linePlanoData.push({ id: linePlanoNextId++, master_id, rack, shelf, cell, loc });
-		return { success: true, message: 'Line Planogram berhasil ditambahkan' };
+		try {
+			await createLinePlano({ master_id, rack, shelf, cell, loc });
+			return { success: true, message: 'Line Planogram berhasil ditambahkan' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[createLinePlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
 	updateLinePlano: async ({ request }) => {
@@ -219,52 +211,48 @@ export const actions = {
 		const cell = formData.get('cell')?.toString().trim() || null;
 		const loc = formData.get('loc')?.toString().trim() || null;
 
-		const master = masterPlanoData.find((m) => m.id === master_id);
-		if (!master) return { success: false, message: 'Master Planogram tidak ditemukan' };
+		if (!master_id) return { success: false, message: 'Master Planogram wajib dipilih' };
 
-		const type = typePlanoData.find((t) => t.id === master.type_id);
-
-		if (type?.type === 'RACK') {
+		if (rack) {
 			const rackErr = validateRack(rack);
 			if (rackErr) return { success: false, message: rackErr };
 			const shelfErr = validateShelf(shelf);
 			if (shelfErr) return { success: false, message: shelfErr };
 			const cellErr = validateCell(cell);
 			if (cellErr) return { success: false, message: cellErr };
-
-			if (isDuplicateLinePlano(master_id, { rack, shelf, cell, loc: null }, id)) {
-				return {
-					success: false,
-					message: `Kombinasi Rack-Shelf-Cell ini sudah ada pada Line ${master.line}`
-				};
-			}
-		} else if (type?.type === 'FLOOR') {
+		} else if (loc) {
 			const locErr = validateLoc(loc);
 			if (locErr) return { success: false, message: locErr };
-
-			if (isDuplicateLinePlano(master_id, { rack: null, shelf: null, cell: null, loc }, id)) {
-				return { success: false, message: `Loc "${loc}" sudah ada pada Line ${master.line}` };
-			}
 		} else {
-			if (!rack && !loc) return { success: false, message: 'Rack atau Loc harus diisi' };
+			return { success: false, message: 'Rack atau Loc harus diisi' };
 		}
 
-		const index = linePlanoData.findIndex((item) => item.id === id);
-		if (index === -1) return { success: false, message: 'Line Planogram tidak ditemukan' };
-
-		linePlanoData[index] = { id, master_id, rack, shelf, cell, loc };
-		return { success: true, message: 'Line Planogram berhasil diupdate' };
+		try {
+			await updateLinePlano(id, { master_id, rack, shelf, cell, loc });
+			return { success: true, message: 'Line Planogram berhasil diupdate' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[updateLinePlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
 	deleteLinePlano: async ({ request }) => {
 		const formData = await request.formData();
 		const id = Number(formData.get('id'));
 
-		linePlanoData = linePlanoData.filter((item) => item.id !== id);
-		return { success: true, message: 'Line Planogram berhasil dihapus' };
+		try {
+			await deleteLinePlano(id);
+			return { success: true, message: 'Line Planogram berhasil dihapus' };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[deleteLinePlano] ${msg}`);
+			return { success: false, message: msg };
+		}
 	},
 
-	// ============ CSV IMPORT ACTION ============
+	// ============ CSV IMPORT ============
+
 	importLinePlanoCsv: async ({ request }) => {
 		const formData = await request.formData();
 		const csvDataRaw = formData.get('csv_data')?.toString();
@@ -280,62 +268,46 @@ export const actions = {
 			return { success: false, message: 'Format data CSV tidak valid' };
 		}
 
-		let inserted = 0;
-		let skipped = 0;
+		if (!Array.isArray(rows) || rows.length === 0) {
+			return { success: false, message: 'Tidak ada baris yang valid untuk diimport' };
+		}
 
+		// Validasi ulang tiap baris di server (defense-in-depth)
+		const validatedRows = [];
 		for (const row of rows) {
-			// Hanya proses baris yang sudah divalidasi 'valid' di frontend
-			// Lakukan validasi ulang di server sebagai layer keamanan
-			const master = masterPlanoData.find((m) => m.id === row.master_id);
-			if (!master) {
-				skipped++;
-				continue;
-			}
-
-			const type = typePlanoData.find((t) => t.id === master.type_id);
 			const rack = row.rack || null;
 			const shelf = row.shelf || null;
 			const cell = row.cell || null;
 			const loc = row.loc || null;
 
-			if (type?.type === 'RACK') {
-				if (validateRack(rack) || validateShelf(shelf) || validateCell(cell)) {
-					skipped++;
-					continue;
-				}
-				if (isDuplicateLinePlano(master.id, { rack, shelf, cell, loc: null })) {
-					skipped++;
-					continue;
-				}
-			} else if (type?.type === 'FLOOR') {
-				if (validateLoc(loc)) {
-					skipped++;
-					continue;
-				}
-				if (isDuplicateLinePlano(master.id, { rack: null, shelf: null, cell: null, loc })) {
-					skipped++;
-					continue;
-				}
+			if (!row.master_id) continue;
+
+			if (rack) {
+				if (validateRack(rack) || validateShelf(shelf) || validateCell(cell)) continue;
+			} else if (loc) {
+				if (validateLoc(loc)) continue;
 			} else {
-				skipped++;
 				continue;
 			}
 
-			linePlanoData.push({
-				id: linePlanoNextId++,
-				master_id: master.id,
-				rack,
-				shelf,
-				cell,
-				loc
-			});
-			inserted++;
+			validatedRows.push({ master_id: row.master_id, rack, shelf, cell, loc });
 		}
 
-		return {
-			success: true,
-			message: `Import selesai: ${inserted} berhasil, ${skipped} dilewati`,
-			data: { inserted, skipped }
-		};
+		if (validatedRows.length === 0) {
+			return { success: false, message: 'Semua baris gagal validasi server' };
+		}
+
+		try {
+			const result = await importLinePlanoBulk(validatedRows);
+			return {
+				success: true,
+				message: `Import selesai: ${result.inserted} berhasil, ${result.skipped} dilewati`,
+				data: { inserted: result.inserted, skipped: result.skipped }
+			};
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[importLinePlanoCsv] ${msg}`);
+			return { success: false, message: msg };
+		}
 	}
 };

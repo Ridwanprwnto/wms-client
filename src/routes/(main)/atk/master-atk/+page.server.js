@@ -7,7 +7,7 @@ import {
 	uploadProduk,
 	uploadSupplier,
 	uploadStock
-} from '$lib/services/atkService';
+} from '$lib/services/masterService';
 import { logger } from '$lib/utils/logger.js';
 
 // ─── Peta type → fungsi upload service ───────────────────────────────────────

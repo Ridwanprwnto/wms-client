@@ -148,6 +148,7 @@
 							on:click={(e) => handleNavClick({ label: 'Master ATK', href: '/atk/master-atk' }, e)}
 						>
 							<span class="block text-left">Master ATK</span>
+							<Badge color="green" size="sm">New</Badge>
 						</button>
 						<button
 							type="button"
@@ -158,7 +159,7 @@
 								handleNavClick({ label: 'Planogram ATK', href: '/atk/planogram-atk' }, e)}
 						>
 							<span class="block text-left">Planogram ATK</span>
-							<Badge color="blue" size="sm">Beta</Badge>
+							<Badge color="green" size="sm">New</Badge>
 						</button>
 					</div>
 				{/if}
@@ -315,7 +316,7 @@
 						/>
 					</div>
 					<span class="flex-1 text-left">Report Issue</span>
-					<Badge color="green" size="sm">New</Badge>
+					<Badge color="blue" size="sm">Beta</Badge>
 				</button>
 			</div>
 		</nav>

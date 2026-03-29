@@ -14,7 +14,7 @@ import { API_KEY_WMS } from '$env/static/private';
  * @returns {Promise<{ success: boolean, data?: any, message?: string }>}
  */
 async function postJson(endpoint, body) {
-	const url = buildApiUrl('WMS', endpoint);
+	const url = buildApiUrl('WMS', `/main/atk/master/${endpoint}`);
 	logger.info(`[atkService] POST ${url}`, { body });
 
 	const res = await fetch(url, {
@@ -51,7 +51,7 @@ async function postJson(endpoint, body) {
  * @returns {Promise<{ success: boolean, inserted?: number, message?: string }>}
  */
 async function postFormData(endpoint, formData) {
-	const url = buildApiUrl('WMS', endpoint);
+	const url = buildApiUrl('WMS', `/main/atk/master/${endpoint}`);
 	logger.info(`[atkService] POST (multipart) ${url}`);
 
 	const res = await fetch(url, {
@@ -91,7 +91,7 @@ async function postFormData(endpoint, formData) {
  * @param {string} masterProduk - kode master produk, contoh 'PRODMAST'
  */
 export async function getProduk(officeId, masterProduk) {
-	return postJson('/main/atk/produk', { office: officeId, master: masterProduk });
+	return postJson('produk', { office: officeId, master: masterProduk });
 }
 
 /**
@@ -100,7 +100,7 @@ export async function getProduk(officeId, masterProduk) {
  * @param {string} masterSupplier - kode master supplier, contoh 'SUPMAST'
  */
 export async function getSupplier(officeId, masterSupplier) {
-	return postJson('/main/atk/supplier', { office: officeId, master: masterSupplier });
+	return postJson('supplier', { office: officeId, master: masterSupplier });
 }
 
 /**
@@ -109,7 +109,7 @@ export async function getSupplier(officeId, masterSupplier) {
  * @param {string} masterStock - kode master stock, contoh 'STMAST'
  */
 export async function getStock(officeId, masterStock) {
-	return postJson('/main/atk/stock', { office: officeId, master: masterStock });
+	return postJson('stock', { office: officeId, master: masterStock });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ export async function uploadProduk(file, officeId) {
 	const fd = new FormData();
 	fd.append('file', file);
 	fd.append('office', officeId);
-	return postFormData('/main/atk/upload/produk', fd);
+	return postFormData('upload/produk', fd);
 }
 
 /**
@@ -140,7 +140,7 @@ export async function uploadSupplier(file, officeId) {
 	const fd = new FormData();
 	fd.append('file', file);
 	fd.append('office', officeId);
-	return postFormData('/main/atk/upload/supplier', fd);
+	return postFormData('upload/supplier', fd);
 }
 
 /**
@@ -153,5 +153,5 @@ export async function uploadStock(file, officeId) {
 	const fd = new FormData();
 	fd.append('file', file);
 	fd.append('office', officeId);
-	return postFormData('/main/atk/upload/stock', fd);
+	return postFormData('upload/stock', fd);
 }
