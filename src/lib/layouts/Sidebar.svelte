@@ -15,7 +15,7 @@
 		QuestionCircleOutline,
 		ExclamationCircleOutline,
 		ChevronDownOutline,
-		PaperClipOutline,
+		PaperClipOutline
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
@@ -27,7 +27,6 @@
 
 	// Direct reactive active states
 	$: dashboardActive = currentPath === '/dashboard';
-	$: settingsActive = currentPath.startsWith('/settings');
 	$: atkActive = currentPath.startsWith('/atk');
 	$: supportActive = currentPath === '/support';
 
@@ -35,22 +34,17 @@
 	$: WSDPDActive = currentPath.startsWith('/webservice-dpd');
 
 	// Individual sub-item active states
-	$: allSettingsActive = currentPath === '/settings';
-	$: MasterCategoryActive = currentPath === '/settings/master-category';
-	$: MasterItemActive = currentPath === '/settings/master-item';
-
 	$: allATKActive = currentPath === '/atk';
-	$: PlanogramMasterActive = currentPath === '/atk/planogram-master';
-	$: PlanogramPlacementActive = currentPath === '/atk/planogram-placement';
-	$: PlanogramMappingActive = currentPath === '/atk/planogram-mapping';
+	$: MasterATKActive = currentPath === '/atk/master-atk';
+	$: PlanogramATKActive = currentPath === '/atk/planogram-atk';
 
 	$: allWSDCActive = currentPath === '/web-service-dc';
 	$: GrupPertemananActive = currentPath === '/webservice-dc/grup-pertemanan';
-	$: MutasiItemPlanogramActive = currentPath === '/webservice-dc/mutasi-item-planogram';
+	$: PlanogramMappingActive = currentPath === '/webservice-dc/planogram-mapping';
 
 	$: allWSDPDActive = currentPath === '/web-service-dpd';
 	$: BookingOrdersActive = currentPath === '/webservice-dpd/booking-pb';
-	
+
 	// Track which dropdowns are open
 	let openDropdowns = {};
 
@@ -112,66 +106,6 @@
 				</button>
 			</div>
 
-			<!-- Settings Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {settingsActive
-						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('Settings')}
-					aria-expanded={openDropdowns['Settings'] ? 'true' : 'false'}
-				>
-					<div class="flex items-center">
-						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<CogOutline class="w-5 h-5 text-gray-500" />
-						</div>
-						<span>Settings</span>
-					</div>
-					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Settings']
-							? 'rotate-180'
-							: ''}"
-					/>
-				</button>
-
-				{#if openDropdowns['Settings']}
-					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<!-- <button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allSettingsActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'All Settings', href: '/settings' }, e)}
-						>
-							<span class="block text-left">All Settings</span>
-						</button> -->
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterCategoryActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Master Category', href: '/settings/master-category' }, e)}
-						>
-							<span class="block text-left">Master Category</span>
-							<Badge color="blue" size="sm">Beta</Badge>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterItemActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Master Item', href: '/settings/master-item' }, e)}
-						>
-							<span class="block text-left">Master Items</span>
-							<Badge color="blue" size="sm">Beta</Badge>
-						</button>
-					</div>
-				{/if}
-			</div>
-
 			<!-- ATK Dropdown -->
 			<div>
 				<button
@@ -208,45 +142,30 @@
 						</button> -->
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMasterActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MasterATKActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Planogram Master', href: '/atk/planogram-master' }, e)}
+							on:click={(e) => handleNavClick({ label: 'Master ATK', href: '/atk/master-atk' }, e)}
 						>
-							<span class="block text-left">Planogram Master</span>
-							<Badge color="purple" size="sm">Soon</Badge>
+							<span class="block text-left">Master ATK</span>
+							<Badge color="green" size="sm">New</Badge>
 						</button>
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramPlacementActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramATKActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick(
-									{ label: 'Planogram Placement', href: '/atk/planogram-placement' },
-									e
-								)}
+								handleNavClick({ label: 'Planogram ATK', href: '/atk/planogram-atk' }, e)}
 						>
-							<span class="block text-left">Planogram Placement</span>
-							<Badge color="purple" size="sm">Soon</Badge>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMappingActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Planogram Mapping', href: '/atk/planogram-mapping' }, e)}
-						>
-							<span class="block text-left">Planogram Mapping</span>
-							<Badge color="blue" size="sm">Beta</Badge>
+							<span class="block text-left">Planogram ATK</span>
+							<Badge color="green" size="sm">New</Badge>
 						</button>
 					</div>
 				{/if}
 			</div>
 		</nav>
-		
+
 		<!-- Divider -->
 		<hr class="my-4 border-gray-200 dark:border-gray-700" />
 
@@ -298,19 +217,25 @@
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' }, e)}
+								handleNavClick(
+									{ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' },
+									e
+								)}
 						>
 							<span class="block text-left">Grup Pertemanan Tablok</span>
 						</button>
 						<button
 							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MutasiItemPlanogramActive
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMappingActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
 							on:click={(e) =>
-								handleNavClick({ label: 'Mutasi Item Planogram', href: '/webservice-dc/mutasi-item-planogram' }, e)}
+								handleNavClick(
+									{ label: 'Planogram Mapping', href: '/webservice-dc/planogram-mapping' },
+									e
+								)}
 						>
-							<span class="block text-left">Mutasi Item Planogram</span>
+							<span class="block text-left">Planogram Mapping</span>
 							<Badge color="purple" size="sm">Soon</Badge>
 						</button>
 					</div>
@@ -364,7 +289,6 @@
 					</div>
 				{/if}
 			</div>
-
 		</nav>
 
 		<!-- Divider -->
@@ -392,7 +316,7 @@
 						/>
 					</div>
 					<span class="flex-1 text-left">Report Issue</span>
-					<Badge color="green" size="sm">New</Badge>
+					<Badge color="blue" size="sm">Beta</Badge>
 				</button>
 			</div>
 		</nav>
