@@ -14,11 +14,6 @@ export const routeConfig = {
 		title: 'Dashboard',
 		icon: 'dashboard'
 	},
-	'/settings': {
-		title: 'Settings',
-		icon: 'settings',
-		parent: '/dashboard'
-	},
 	'/atk': {
 		title: 'ATK',
 		icon: 'orders',
@@ -33,7 +28,7 @@ export const routeConfig = {
 		title: 'Webservice DPD',
 		icon: 'orders',
 		parent: '/dashboard'
-	},
+	}
 	// '/products/create': {
 	// 	title: 'Add New Product',
 	// 	icon: 'add',

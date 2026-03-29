@@ -56,12 +56,10 @@ export async function handle({ event, resolve }) {
 	// Protected routes yang butuh login
 	const protectedRoutes = [
 		'/dashboard',
-		'/atk/planogram-master',
-		'/atk/planogram-placement',
-		'/atk/planogram-mapping',
-		'/settings/master-item',
+		'/atk/master-atk',
+		'/atk/planogram-atk',
 		'/webservice-dc/grup-pertemanan',
-		'/webservice-dc/mutasi-item-planogram',
+		'/webservice-dc/planogram-mapping',
 		'/webservice-dpd/booking-pb',
 		'/support'
 	];
