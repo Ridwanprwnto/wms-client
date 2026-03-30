@@ -33,12 +33,12 @@
 	// in_stock     → stok > 0  → badge hijau
 	// out_of_stock → stok = 0  → badge merah
 	const STATUS_CONFIG: Record<string, { color: 'green' | 'red'; label: string }> = {
-		in_stock:     { color: 'green', label: 'Tersedia' },
-		out_of_stock: { color: 'red',   label: 'Habis'    }
+		in_stock: { color: 'green', label: 'Tersedia' },
+		out_of_stock: { color: 'red', label: 'Habis' }
 	};
 
 	// ─── Filter state ────────────────────────────────────────
-	let searchValue  = data.filters.search;
+	let searchValue = data.filters.search;
 	let isNavigating = false;
 
 	// ─── Format helpers ──────────────────────────────────────
@@ -50,7 +50,9 @@
 	function formatDate(dateStr: string | null): string {
 		if (!dateStr) return '-';
 		return new Date(dateStr).toLocaleDateString('id-ID', {
-			day: '2-digit', month: 'short', year: 'numeric'
+			day: '2-digit',
+			month: 'short',
+			year: 'numeric'
 		});
 	}
 
@@ -83,7 +85,7 @@
 	}
 
 	async function resetFilter() {
-		searchValue  = '';
+		searchValue = '';
 		isNavigating = true;
 		await goto('?', { invalidateAll: true });
 		isNavigating = false;
@@ -102,19 +104,14 @@
 	$: paginationRange = (() => {
 		const { page: cur, totalPages } = data.pagination;
 		const start = Math.max(1, cur - 2);
-		const end   = Math.min(totalPages, start + 4);
+		const end = Math.min(totalPages, start + 4);
 		const pages: number[] = [];
 		for (let i = start; i <= end; i++) pages.push(i);
 		return pages;
 	})();
 </script>
 
-<svelte:head>
-	<title>Monitoring Stok ATK</title>
-</svelte:head>
-
 <Card size="xl" class="max-w-none p-4 shadow-sm sm:p-6">
-
 	<!-- ── Header ──────────────────────────────────────────── -->
 	<div class="mb-6">
 		<Heading tag="h3" class="text-xl font-semibold dark:text-white mb-1">
@@ -127,8 +124,9 @@
 
 	<!-- ── Summary Cards ───────────────────────────────────── -->
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-		<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+		<div
+			class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+		>
 			<div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg flex-shrink-0">
 				<DatabaseOutline class="w-5 h-5 text-blue-600 dark:text-blue-300" />
 			</div>
@@ -140,7 +138,9 @@
 			</div>
 		</div>
 
-		<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+		<div
+			class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+		>
 			<div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg flex-shrink-0">
 				<GoToPrevCellOutline class="w-5 h-5 text-green-600 dark:text-green-300" />
 			</div>
@@ -152,7 +152,9 @@
 			</div>
 		</div>
 
-		<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+		<div
+			class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+		>
 			<div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg flex-shrink-0">
 				<GoToNextCellOutline class="w-5 h-5 text-purple-600 dark:text-purple-300" />
 			</div>
@@ -164,17 +166,21 @@
 			</div>
 		</div>
 
-		<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+		<div
+			class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+		>
 			<div class="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg flex-shrink-0">
 				<MergeCellsOutline class="w-5 h-5 text-orange-600 dark:text-orange-300" />
 			</div>
 			<div class="min-w-0">
 				<p class="text-xs text-gray-500 dark:text-gray-400">Variance</p>
-				<p class="text-xl font-bold {
-					data.summary.totalVariance > 0 ? 'text-blue-600 dark:text-blue-400' :
-					data.summary.totalVariance < 0 ? 'text-red-600 dark:text-red-400' :
-					'text-green-600 dark:text-green-400'
-				}">
+				<p
+					class="text-xl font-bold {data.summary.totalVariance > 0
+						? 'text-blue-600 dark:text-blue-400'
+						: data.summary.totalVariance < 0
+							? 'text-red-600 dark:text-red-400'
+							: 'text-green-600 dark:text-green-400'}"
+				>
 					{data.summary.totalVariance > 0 ? '+' : ''}{formatNumber(data.summary.totalVariance)}
 				</p>
 			</div>
@@ -183,7 +189,9 @@
 
 	<!-- ── Error dari load() ────────────────────────────────── -->
 	{#if data.error}
-		<div class="mb-4 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm">
+		<div
+			class="mb-4 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm"
+		>
 			<ExclamationCircleOutline class="w-4 h-4 flex-shrink-0" />
 			{data.error}
 		</div>
@@ -243,7 +251,9 @@
 				{#if data.stocks.length === 0}
 					<TableBodyRow>
 						<TableBodyCell colspan={9}>
-							<div class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+							<div
+								class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500"
+							>
 								<ExclamationCircleOutline class="w-12 h-12 mb-3 opacity-40" />
 								<p class="font-medium">Tidak ada data stok</p>
 								<p class="text-sm mt-1">
@@ -258,7 +268,9 @@
 					{#each data.stocks as stock}
 						{@const statusCfg = STATUS_CONFIG[stock.status] ?? STATUS_CONFIG.in_stock}
 						<TableBodyRow>
-							<TableBodyCell class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+							<TableBodyCell
+								class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap"
+							>
 								{stock.sku}
 							</TableBodyCell>
 
@@ -286,11 +298,11 @@
 
 							<!-- Qty Stok — merah jika habis -->
 							<TableBodyCell class="text-right font-semibold whitespace-nowrap">
-								<span class="{
-									stock.status === 'out_of_stock'
+								<span
+									class={stock.status === 'out_of_stock'
 										? 'text-red-600 dark:text-red-400'
-										: 'text-gray-900 dark:text-white'
-								}">
+										: 'text-gray-900 dark:text-white'}
+								>
 									{formatNumber(stock.quantity)}
 								</span>
 							</TableBodyCell>
@@ -307,7 +319,9 @@
 							</TableBodyCell>
 
 							<!-- Variance -->
-							<TableBodyCell class="text-right font-medium whitespace-nowrap {varianceClass(stock.variance)}">
+							<TableBodyCell
+								class="text-right font-medium whitespace-nowrap {varianceClass(stock.variance)}"
+							>
 								{varianceLabel(stock.variance)}
 							</TableBodyCell>
 
@@ -349,7 +363,8 @@
 
 			<div class="flex items-center gap-1">
 				<Button
-					size="sm" color="light"
+					size="sm"
+					color="light"
 					disabled={data.pagination.page <= 1}
 					onclick={() => goToPage(data.pagination.page - 1)}
 					class="px-2"
@@ -369,7 +384,8 @@
 				{/each}
 
 				<Button
-					size="sm" color="light"
+					size="sm"
+					color="light"
 					disabled={data.pagination.page >= data.pagination.totalPages}
 					onclick={() => goToPage(data.pagination.page + 1)}
 					class="px-2"
@@ -379,5 +395,4 @@
 			</div>
 		</div>
 	{/if}
-
 </Card>
