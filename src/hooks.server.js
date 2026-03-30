@@ -58,6 +58,7 @@ export async function handle({ event, resolve }) {
 		'/dashboard',
 		'/atk/master-atk',
 		'/atk/planogram-atk',
+		'/atk/monitoring-stock',
 		'/webservice-dc/grup-pertemanan',
 		'/webservice-dc/planogram-mapping',
 		'/webservice-dpd/booking-pb',
