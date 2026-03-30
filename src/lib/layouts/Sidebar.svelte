@@ -37,6 +37,7 @@
 	$: allATKActive = currentPath === '/atk';
 	$: MasterATKActive = currentPath === '/atk/master-atk';
 	$: PlanogramATKActive = currentPath === '/atk/planogram-atk';
+	$: MonitoringStockActive = currentPath === '/atk/monitoring-stock';
 
 	$: allWSDCActive = currentPath === '/web-service-dc';
 	$: GrupPertemananActive = currentPath === '/webservice-dc/grup-pertemanan';
@@ -159,6 +160,17 @@
 								handleNavClick({ label: 'Planogram ATK', href: '/atk/planogram-atk' }, e)}
 						>
 							<span class="block text-left">Planogram ATK</span>
+							<Badge color="green" size="sm">New</Badge>
+						</button>
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MonitoringStockActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick({ label: 'Monitoring Stock', href: '/atk/monitoring-stock' }, e)}
+						>
+							<span class="block text-left">Monitoring Stock</span>
 							<Badge color="green" size="sm">New</Badge>
 						</button>
 					</div>
