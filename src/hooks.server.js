@@ -1,5 +1,5 @@
 import { COOKIE_OPTIONS } from '$lib/config/cookies.js';
-import { redirect } from '@sveltejs/kit';
+import { redirect, isRedirect } from '@sveltejs/kit';
 import { verifyTokenService } from '$lib/services/authService.js';
 import { logger } from '$lib/utils/logger.js';
 import { API_RESPONSE_TIME } from '$env/static/private';
@@ -96,7 +96,7 @@ export async function handle({ event, resolve }) {
 			}
 		} catch (error) {
 			// Jika error adalah redirect, lempar ulang
-			if (error.status === 307) {
+			if (isRedirect(error)) {
 				throw error;
 			}
 			logger.error('Token verification error on login page', error, { pathname });
@@ -222,7 +222,7 @@ export async function handle({ event, resolve }) {
 			});
 		} catch (error) {
 			// Jika error adalah redirect, lempar ulang
-			if (error.status === 307) {
+			if (isRedirect(error)) {
 				throw error;
 			}
 
@@ -281,8 +281,8 @@ export async function handle({ event, resolve }) {
 	} catch (error) {
 		const responseTime = Date.now() - startTime;
 
-		// Jika error adalah redirect, log dan lempar ulang
-		if (error.status === 307 || error.status === 302) {
+		// Jika error adalah redirect (301, 302, 303, 307, 308), lempar ulang langsung
+		if (isRedirect(error)) {
 			logger.info('Redirect response', {
 				from: pathname,
 				to: error.location,
