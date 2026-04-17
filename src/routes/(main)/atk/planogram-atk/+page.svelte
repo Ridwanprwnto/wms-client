@@ -358,21 +358,6 @@
 		};
 	}
 
-	// Digunakan di tombol hapus lokasi inline (di dalam accordion Master)
-	function enhanceDeleteLinePlanoInline() {
-		return ({ result, update }: any) => {
-			update();
-			if (result.type === 'success') {
-				if (result.data?.success === false) {
-					showError(result.data?.message || 'Gagal menghapus lokasi');
-				} else {
-					showSuccess('Lokasi berhasil dihapus');
-				}
-			} else {
-				showError('Gagal menghapus lokasi');
-			}
-		};
-	}
 
 	// Digunakan di modal konfirmasi delete (Master & Line dari Tab 3)
 	function enhanceDelete() {
@@ -919,17 +904,14 @@
 																	>
 																		<EditOutline class="h-3 w-3" />
 																	</Button>
-																	<!-- Hapus inline: pakai enhanceDeleteLinePlanoInline -->
-																	<form
-																		method="POST"
-																		action="?/deleteLinePlano"
-																		use:enhance={enhanceDeleteLinePlanoInline}
+																	<!-- Hapus inline: pakai modal konfirmasi -->
+																	<Button
+																		size="xs"
+																		color="red"
+																		onclick={() => confirmDelete(lp, 'deleteLinePlano')}
 																	>
-																		<input type="hidden" name="id" value={lp.id} />
-																		<Button size="xs" color="red" type="submit">
-																			<TrashBinOutline class="h-3 w-3" />
-																		</Button>
-																	</form>
+																		<TrashBinOutline class="h-3 w-3" />
+																	</Button>
 																</div>
 															</div>
 														{/each}

@@ -22,7 +22,6 @@
 		InfoCircleSolid,
 		ArrowRightOutline
 	} from 'flowbite-svelte-icons';
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 	import { showWarning, showSuccess, showError, showInfo } from '$lib/utils/alertUtils.js';

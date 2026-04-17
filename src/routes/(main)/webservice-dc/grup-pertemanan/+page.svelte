@@ -257,8 +257,6 @@
 					return;
 				}
 
-				console.log('Parsed Data (getLineRak):', parsedData);
-
 				const rakOptions = [];
 
 				// Pair setiap objek {pla_rak: X} dengan string setelahnya
