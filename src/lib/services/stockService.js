@@ -122,4 +122,17 @@ export const stockService = {
 		logger.info(`[stockService] getStocks — ${params.toString()}`);
 		return apiFetch(`/stocks?${params.toString()}`);
 	},
+
+	/**
+	 * Ambil SELURUH data stok tanpa paginasi (untuk export Excel).
+	 * @param {{ search?: string }} [filters]
+	 * @returns {Promise<{ success: boolean, data: StockItem[], total: number }>}
+	 */
+	async exportStocks({ search = '' } = {}) {
+		const params = new URLSearchParams();
+		if (search) params.set('search', search);
+
+		logger.info(`[stockService] exportStocks — ${params.toString()}`);
+		return apiFetch(`/stocks/export?${params.toString()}`);
+	},
 };

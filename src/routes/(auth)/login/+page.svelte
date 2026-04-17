@@ -4,14 +4,13 @@
 	import { Button, Label, Input, Checkbox, Card } from 'flowbite-svelte';
 	import { EyeOutline, EyeSlashOutline } from 'flowbite-svelte-icons';
 	import { handleApiResponse } from '$lib/utils/alertUtils.js';
+	import { PUBLIC_APP_VERSION, PUBLIC_APP_DEVELOPER } from '$env/static/public';
 
 	let username = '';
 	let password = '';
 	let rememberMe = false;
 	let showPassword = false;
 
-	// Contoh data statis untuk versi aplikasi
-	const appVersion = '1.0.0';
 	const currentYear = new Date().getFullYear();
 
 	$: {
@@ -85,8 +84,8 @@
 		<footer
 			class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2 pt-4 border-t border-gray-200 dark:border-gray-700"
 		>
-			<p>&copy; {currentYear} WMS Developed by Purwanto Ridwan.</p>
-			<p>Version: {appVersion}</p>
+			<p>&copy; {currentYear} WMS Developed by {PUBLIC_APP_DEVELOPER}.</p>
+			<p>Version: {PUBLIC_APP_VERSION}</p>
 		</footer>
 	</Card>
 </div>

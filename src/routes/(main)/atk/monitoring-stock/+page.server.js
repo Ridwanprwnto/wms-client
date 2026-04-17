@@ -1,5 +1,6 @@
 import { stockService } from '$lib/services/stockService.js';
 import { logger } from '$lib/utils/logger.js';
+import { fail } from '@sveltejs/kit';
 
 function serializeError(err) {
 	if (!err) return 'Unknown error';
@@ -38,3 +39,24 @@ export async function load({ url }) {
 		};
 	}
 }
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+	/**
+	 * Server action: ambil seluruh data stok untuk di-export sebagai Excel.
+	 * Dipanggil via fetch dari +page.svelte.
+	 */
+	exportStocks: async ({ request }) => {
+		try {
+			const formData = await request.formData();
+			const search = (formData.get('search') ?? '').toString().trim();
+
+			const result = await stockService.exportStocks({ search });
+
+			return { success: true, data: result?.data ?? [] };
+		} catch (err) {
+			logger.error(`[stock/action/exportStocks] ${serializeError(err)}`);
+			return fail(500, { success: false, error: serializeError(err) });
+		}
+	}
+};
