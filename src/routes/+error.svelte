@@ -1,7 +1,6 @@
 <script>
 	import { Button } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
 	import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
 </script>
 
@@ -28,7 +27,7 @@
 	<div class="flex flex-col sm:flex-row gap-4 mt-4">
 		<Button href="/" color="primary" class="font-medium text-lg px-6">Kembali ke Beranda</Button>
 		<Button
-			onClick={() => goto('/')}
+			onclick={() => window.location.reload()}
 			color="alternative"
 			class="cursor-pointer font-medium text-lg px-6">Muat Ulang Halaman</Button
 		>
