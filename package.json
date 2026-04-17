@@ -12,7 +12,6 @@
 		"test": "npm run test:unit -- --run",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"env:test": "cp .env .env.production",
 		"env:debug": "node scripts/debug-env.js",
 		"logs:clean": "rm -rf logs/*.log || del /Q logs\\*.log",
 		"logs:archive": "tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/ || echo 'Archive command not available on Windows'",

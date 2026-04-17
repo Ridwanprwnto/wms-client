@@ -25,7 +25,6 @@
 	// Toggle sidebar with better mobile handling
 	function toggleSidebar() {
 		isSidebarOpen = !isSidebarOpen;
-		console.log('Sidebar toggled:', isSidebarOpen); // Debug log
 
 		// Prevent body scroll when sidebar is open on mobile
 		if (typeof window !== 'undefined' && !isLargeScreen) {
@@ -67,12 +66,6 @@
 			}
 		};
 	});
-
-	// Debug reactive statement
-	$: console.log('isSidebarOpen:', isSidebarOpen, 'isLargeScreen:', isLargeScreen);
-
-	// Debug breadcrumb - hapus setelah testing
-	$: console.log('Current pathname for breadcrumb:', $page.url.pathname);
 </script>
 
 <svelte:head>
