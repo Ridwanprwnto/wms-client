@@ -19,6 +19,7 @@
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
+	import { PUBLIC_APP_VERSION, PUBLIC_APP_DEVELOPER, PUBLIC_APP_DEVELOPER_URL } from '$env/static/public';
 
 	export let isSidebarOpen;
 
@@ -337,13 +338,13 @@
 		<div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
 			<div class="px-3 py-2">
 				<div class="text-xs text-gray-500 dark:text-gray-400 text-center">
-					<p class="mb-1">WMS Dashboard v1.0.0</p>
+					<p class="mb-1">WMS Dashboard {PUBLIC_APP_VERSION}</p>
 					<p>
 						&copy; {new Date().getFullYear()}
 						<a
-							href="https://ridwanpurwanto-blog.vercel.app"
+							href={PUBLIC_APP_DEVELOPER_URL}
 							target="_blank"
-							class="text-primary-700 dark:text-primary-500 inline-flex">Purwanto Ridwan</a
+							class="text-primary-700 dark:text-primary-500 inline-flex">{PUBLIC_APP_DEVELOPER}</a
 						>
 					</p>
 				</div>

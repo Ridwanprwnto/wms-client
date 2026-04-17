@@ -22,10 +22,13 @@
 		ExclamationCircleOutline,
 		MergeCellsOutline,
 		ChevronLeftOutline,
-		ChevronRightOutline
+		ChevronRightOutline,
+		FileChartBarOutline
 	} from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { deserialize } from '$app/forms';
+	import * as XLSX from 'xlsx';
 
 	export let data;
 
@@ -40,6 +43,8 @@
 	// ─── Filter state ────────────────────────────────────────
 	let searchValue = data.filters.search;
 	let isNavigating = false;
+	let isExporting = false;
+	let exportError: string | null = null;
 
 	// ─── Format helpers ──────────────────────────────────────
 	function formatNumber(value: number | null): string {
@@ -109,6 +114,100 @@
 		for (let i = start; i <= end; i++) pages.push(i);
 		return pages;
 	})();
+
+	// ─── Export Excel ─────────────────────────────────────────
+	async function exportToExcel() {
+		exportError = null;
+		isExporting = true;
+		try {
+			// Panggil server action via fetch
+			const formData = new FormData();
+			if (searchValue) formData.set('search', searchValue);
+
+			const res = await fetch('?/exportStocks', {
+				method: 'POST',
+				body: formData,
+				headers: {
+					'x-sveltekit-action': 'true',
+					'accept': 'application/json'
+				}
+			});
+
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+			const text = await res.text();
+			let stockRows: any[] = [];
+			try {
+				const result = deserialize(text);
+				if (result.type === 'success') {
+					stockRows = result.data?.data ?? [];
+				} else if (result.type === 'failure') {
+					throw new Error(result.data?.error ?? 'Gagal mengambil data dari server');
+				} else {
+					throw new Error(`Unexpected result type: ${result.type}`);
+				}
+			} catch (err: any) {
+				throw new Error(err.message ?? 'Gagal mem-parsing data export dari server.');
+			}
+
+			if (!Array.isArray(stockRows)) stockRows = [];
+
+			// Bentuk baris Excel
+			const STATUS_LABEL: Record<string, string> = {
+				in_stock: 'Tersedia',
+				out_of_stock: 'Habis'
+			};
+
+			const wsData = [
+				// Header row
+				['Kode Produk', 'Nama Produk', 'Singkatan', 'Kemasan', 'Frac',
+				 'Qty Stok', 'Qty Plano', 'Variance', 'Status', 'Update Plano'],
+				// Data rows
+				...stockRows.map((s: any) => [
+					s.sku ?? '',
+					s.name ?? '',
+					s.shortName ?? '',
+					s.kemasan ?? '',
+					s.frac ?? 0,
+					s.quantity ?? 0,
+					s.plano ?? '',
+					s.variance ?? '',
+					STATUS_LABEL[s.status] ?? s.status ?? '',
+					s.lastUpdated ? new Date(s.lastUpdated).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
+				])
+			];
+
+			const wb = XLSX.utils.book_new();
+			const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+			// Lebar kolom otomatis
+			ws['!cols'] = [
+				{ wch: 14 }, // Kode
+				{ wch: 40 }, // Nama
+				{ wch: 20 }, // Singkatan
+				{ wch: 12 }, // Kemasan
+				{ wch: 8 },  // Frac
+				{ wch: 12 }, // Qty Stok
+				{ wch: 12 }, // Qty Plano
+				{ wch: 12 }, // Variance
+				{ wch: 12 }, // Status
+				{ wch: 16 }  // Update Plano
+			];
+
+			XLSX.utils.book_append_sheet(wb, ws, 'Monitoring Stok');
+
+			// Buat nama file dengan tanggal
+			const now = new Date();
+			const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+			const filename = `monitoring-stok-atk_${dateStr}.xlsx`;
+
+			XLSX.writeFile(wb, filename);
+		} catch (err: any) {
+			exportError = err?.message ?? 'Gagal mengekspor data.';
+		} finally {
+			isExporting = false;
+		}
+	}
 </script>
 
 <Card size="xl" class="max-w-none p-4 shadow-sm sm:p-6">
@@ -145,7 +244,7 @@
 				<GoToPrevCellOutline class="w-5 h-5 text-green-600 dark:text-green-300" />
 			</div>
 			<div class="min-w-0">
-				<p class="text-xs text-gray-500 dark:text-gray-400">Total Stok</p>
+				<p class="text-xs text-gray-500 dark:text-gray-400">Total Qty Stok</p>
 				<p class="text-xl font-bold text-gray-900 dark:text-white">
 					{formatNumber(data.summary.totalStock)}
 				</p>
@@ -159,7 +258,7 @@
 				<GoToNextCellOutline class="w-5 h-5 text-purple-600 dark:text-purple-300" />
 			</div>
 			<div class="min-w-0">
-				<p class="text-xs text-gray-500 dark:text-gray-400">Total Plano</p>
+				<p class="text-xs text-gray-500 dark:text-gray-400">Total Qty Plano</p>
 				<p class="text-xl font-bold text-gray-900 dark:text-white">
 					{formatNumber(data.summary.totalPlano)}
 				</p>
@@ -173,7 +272,7 @@
 				<MergeCellsOutline class="w-5 h-5 text-orange-600 dark:text-orange-300" />
 			</div>
 			<div class="min-w-0">
-				<p class="text-xs text-gray-500 dark:text-gray-400">Variance</p>
+				<p class="text-xs text-gray-500 dark:text-gray-400">Total Qty Variance</p>
 				<p
 					class="text-xl font-bold {data.summary.totalVariance > 0
 						? 'text-blue-600 dark:text-blue-400'
@@ -216,12 +315,31 @@
 				{/if}
 				Cari
 			</Button>
-			<Button color="light" size="md" onclick={resetFilter} disabled={isNavigating}>
+			<Button color="light" size="md" onclick={resetFilter} disabled={isNavigating || isExporting}>
 				<ArrowsRepeatOutline class="w-4 h-4 me-1" />
 				Reset
 			</Button>
+			<Button color="green" size="md" onclick={exportToExcel} disabled={isExporting || isNavigating}>
+				{#if isExporting}
+					<Spinner size="4" color="white" class="me-1" />
+					Mengekspor...
+				{:else}
+					<FileChartBarOutline class="w-4 h-4 me-1" />
+					Export Excel
+				{/if}
+			</Button>
 		</div>
 	</div>
+
+	<!-- Export error -->
+	{#if exportError}
+		<div
+			class="mb-3 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm"
+		>
+			<ExclamationCircleOutline class="w-4 h-4 flex-shrink-0" />
+			{exportError}
+		</div>
+	{/if}
 
 	<!-- Filter aktif -->
 	{#if data.filters.search}
@@ -241,7 +359,7 @@
 				<TableHeadCell>Kemasan</TableHeadCell>
 				<TableHeadCell>Frac</TableHeadCell>
 				<TableHeadCell class="text-right">Qty Stok</TableHeadCell>
-				<TableHeadCell class="text-right">Total Plano</TableHeadCell>
+				<TableHeadCell class="text-right">Qty Plano</TableHeadCell>
 				<TableHeadCell class="text-right">Variance</TableHeadCell>
 				<TableHeadCell>Status</TableHeadCell>
 				<TableHeadCell>Update Plano</TableHeadCell>
