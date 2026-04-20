@@ -165,7 +165,7 @@
 				// Data rows
 				...stockRows.map((s: any) => [
 					s.sku ?? '',
-					s.name ?? '',
+					s.desc ?? '',
 					s.shortName ?? '',
 					s.kemasan ?? '',
 					s.frac ?? 0,
