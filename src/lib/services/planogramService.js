@@ -115,6 +115,23 @@ function normalizeLinePlano(item) {
 	};
 }
 
+function normalizeExportPlano(item) {
+	if (!item) return null;
+	return {
+		type: item.name_type_plano ?? null,
+		line: item.line_master_plano ?? null,
+		rack: item.rack_plano ?? null,
+		shelf: item.shelf_plano ?? null,
+		cell: item.cell_plano ?? null,
+		loc: item.loc_plano ?? null,
+		plano: item.qty_str_plano ?? null,
+		lastUpdated: item.date_str_plano ?? null,
+		sku: item.prdcd_str_plano ?? null,
+		desc: item.desc2 ?? null,
+		frac: item.frac ?? null
+	};
+}
+
 // =============================================================================
 // TYPE PLANOGRAM
 // =============================================================================
@@ -287,4 +304,12 @@ export async function importLinePlanoBulk(rows) {
 		inserted: result.inserted ?? 0,
 		skipped: result.skipped ?? 0
 	};
+}
+
+export async function exportPlanograms() {
+	// 'export' — tanpa leading slash, apiFetch sudah menambahkan prefix path
+	const res = await apiFetch('export');
+	// Backend mengembalikan { success: true, data: [...] }
+	const rows = Array.isArray(res?.data) ? res.data : unwrapArray(res);
+	return rows.map(normalizeExportPlano);
 }
