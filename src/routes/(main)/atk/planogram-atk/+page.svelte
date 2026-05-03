@@ -26,9 +26,11 @@
 		UploadOutline,
 		DownloadOutline,
 		CheckCircleOutline,
-		CloseCircleOutline
+		CloseCircleOutline,
+		FileChartBarOutline
 	} from 'flowbite-svelte-icons';
-	import { enhance } from '$app/forms';
+	import { enhance, deserialize } from '$app/forms';
+	import * as XLSX from 'xlsx';
 	import { showSuccess, showError, showWarning, showInfo } from '$lib/utils/alertUtils.js';
 
 	export let data;
@@ -358,7 +360,6 @@
 		};
 	}
 
-
 	// Digunakan di modal konfirmasi delete (Master & Line dari Tab 3)
 	function enhanceDelete() {
 		// Snapshot nilai saat tombol diklik karena deleteItem/deleteAction
@@ -462,6 +463,135 @@
 		lineEditId = null;
 		currentMasterPlano = null;
 		linePlanoErrors = {};
+	}
+
+	// ===================== PLANO EXPORT XCL =====================
+	let isExporting = false;
+
+	// ─── Export Excel ─────────────────────────────────────────
+	async function exportToExcel() {
+		isExporting = true;
+		try {
+			// Panggil server action via fetch
+			const formData = new FormData();
+
+			const res = await fetch('?/exportPlanograms', {
+				method: 'POST',
+				body: formData,
+				headers: {
+					'x-sveltekit-action': 'true',
+					accept: 'application/json'
+				}
+			});
+
+			if (!res.ok) {
+				showError(`Gagal menghubungi server (HTTP ${res.status}). Periksa koneksi atau coba lagi.`);
+				return;
+			}
+
+			const text = await res.text();
+			let planogramRows: any[] = [];
+
+			let result: any;
+			try {
+				result = deserialize(text);
+			} catch {
+				showError('Respons server tidak dapat dibaca. Coba refresh halaman dan ulangi.');
+				return;
+			}
+
+			if (result.type === 'success') {
+				if (result.data?.success === false) {
+					showError(result.data?.message ?? 'Gagal mengambil data planogram dari server.');
+					return;
+				}
+				planogramRows = result.data?.data ?? [];
+			} else if (result.type === 'failure') {
+				showError(result.data?.message ?? 'Server mengembalikan respons gagal. Coba lagi.');
+				return;
+			} else {
+				showError('Terjadi kesalahan yang tidak diketahui saat mengambil data.');
+				return;
+			}
+
+			if (!Array.isArray(planogramRows)) planogramRows = [];
+
+			if (planogramRows.length === 0) {
+				showWarning('Tidak ada data planogram yang tersedia untuk diekspor.');
+				return;
+			}
+
+			const wsData = [
+				// Header row — 11 kolom
+				[
+					'Type Plano',
+					'Line',
+					'Rack',
+					'Shelf',
+					'Cell',
+					'Loc',
+					'Kode Produk',
+					'Nama Produk',
+					'Fraction',
+					'Qty Plano',
+					'Update Plano'
+				],
+				// Data rows — 11 nilai, urutan sama dengan header
+				...planogramRows.map((s: any) => [
+					s.type ?? '',
+					s.line ?? '-',
+					s.rack ?? '-',
+					s.shelf ?? '-',
+					s.cell ?? '-',
+					s.loc ?? '-',
+					s.sku ?? '',
+					s.desc ?? '',
+					s.frac ?? '',
+					s.plano ?? '',
+					s.lastUpdated
+						? new Date(s.lastUpdated).toLocaleDateString('id-ID', {
+								day: '2-digit',
+								month: 'short',
+								year: 'numeric'
+							})
+						: ''
+				])
+			];
+
+			const wb = XLSX.utils.book_new();
+			const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+			// Lebar kolom
+			ws['!cols'] = [
+				{ wch: 12 }, // Type Plano
+				{ wch: 10 }, // Line
+				{ wch: 10 }, // Rack
+				{ wch: 8 }, // Shelf
+				{ wch: 8 }, // Cell
+				{ wch: 8 }, // Loc
+				{ wch: 14 }, // Kode Produk
+				{ wch: 40 }, // Nama Produk
+				{ wch: 8 }, // Fraction
+				{ wch: 12 }, // Qty Plano
+				{ wch: 16 } // Update Plano
+			];
+
+			XLSX.utils.book_append_sheet(wb, ws, 'Planogram');
+
+			// Buat nama file dengan tanggal
+			const now = new Date();
+			const dateStr = now
+				.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
+				.replace(/\//g, '-');
+			const filename = `planogram-atk_${dateStr}.xlsx`;
+
+			XLSX.writeFile(wb, filename);
+			showSuccess(`${planogramRows.length} data planogram berhasil diekspor ke ${filename}`);
+		} catch (err: any) {
+			showError(err?.message ?? 'Terjadi kesalahan yang tidak diketahui saat mengekspor data.');
+		} finally {
+			isExporting = false;
+		}
 	}
 
 	// ===================== CSV UPLOAD =====================
@@ -949,13 +1079,22 @@
 					<div class="mb-4 flex items-center justify-between gap-2">
 						<div></div>
 						<div class="flex gap-2">
+							<Button onclick={() => openLinePlanoModal()} color="blue" size="sm">
+								<PlusOutline class="me-2 h-4 w-4" />
+								Tambah Lokasi
+							</Button>
 							<Button onclick={openCsvModal} color="green" size="sm">
 								<UploadOutline class="me-2 h-4 w-4" />
 								Upload CSV
 							</Button>
-							<Button onclick={() => openLinePlanoModal()} color="blue" size="sm">
-								<PlusOutline class="me-2 h-4 w-4" />
-								Tambah Lokasi
+							<Button color="green" size="md" onclick={exportToExcel} disabled={isExporting}>
+								{#if isExporting}
+									<Spinner size="4" color="white" class="me-1" />
+									Mengekspor...
+								{:else}
+									<FileChartBarOutline class="w-4 h-4 me-1" />
+									Export Excel
+								{/if}
 							</Button>
 						</div>
 					</div>

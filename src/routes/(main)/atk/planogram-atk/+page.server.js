@@ -10,7 +10,8 @@ import {
 	createLinePlano,
 	updateLinePlano,
 	deleteLinePlano,
-	importLinePlanoBulk
+	importLinePlanoBulk,
+	exportPlanograms
 } from '$lib/services/planogramService.js';
 
 import { logger } from '$lib/utils/logger.js';
@@ -307,6 +308,20 @@ export const actions = {
 		} catch (err) {
 			const msg = serializeError(err);
 			logger.error(`[importLinePlanoCsv] ${msg}`);
+			return { success: false, message: msg };
+		}
+	},
+
+	// ============ XCL EXPORT ============
+
+	exportPlanograms: async () => {
+		try {
+			// exportPlanograms() sudah mengembalikan array yang dinormalisasi
+			const data = await exportPlanograms();
+			return { success: true, data };
+		} catch (err) {
+			const msg = serializeError(err);
+			logger.error(`[exportPlanograms] ${msg}`);
 			return { success: false, message: msg };
 		}
 	}
