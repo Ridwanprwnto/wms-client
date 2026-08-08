@@ -15,7 +15,8 @@
 		QuestionCircleOutline,
 		ExclamationCircleOutline,
 		ChevronDownOutline,
-		PaperClipOutline
+		PaperClipOutline,
+		SortOutline
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
@@ -29,6 +30,7 @@
 	// Direct reactive active states
 	$: dashboardActive = currentPath === '/dashboard';
 	$: atkActive = currentPath.startsWith('/atk');
+	$: sortasiActive = currentPath.startsWith('/sortasi');
 	$: supportActive = currentPath === '/support';
 
 	$: WSDCActive = currentPath.startsWith('/webservice-dc');
@@ -39,6 +41,9 @@
 	$: MasterATKActive = currentPath === '/atk/master-atk';
 	$: PlanogramATKActive = currentPath === '/atk/planogram-atk';
 	$: MonitoringStockActive = currentPath === '/atk/monitoring-stock';
+
+	$: allSortasiActive = currentPath === '/sortasi';
+	$: MonitoringSortasiActive = currentPath === '/sortasi/monitoring-sortasi';
 
 	$: allWSDCActive = currentPath === '/web-service-dc';
 	$: GrupPertemananActive = currentPath === '/webservice-dc/grup-pertemanan';
@@ -172,6 +177,54 @@
 								handleNavClick({ label: 'Monitoring Stock', href: '/atk/monitoring-stock' }, e)}
 						>
 							<span class="block text-left">Monitoring Stock</span>
+							<Badge color="green" size="sm">New</Badge>
+						</button>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Sortasi Dropdown -->
+			<div>
+				<button
+					type="button"
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {sortasiActive
+						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					on:click={() => toggleDropdown('Sortasi')}
+					aria-expanded={openDropdowns['Sortasi'] ? 'true' : 'false'}
+				>
+					<div class="flex items-center">
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<SortOutline class="w-5 h-5 text-gray-500" />
+						</div>
+						<span>Sortasi</span>
+					</div>
+					<ChevronDownOutline
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['Sortasi']
+							? 'rotate-180'
+							: ''}"
+					/>
+				</button>
+
+				{#if openDropdowns['Sortasi']}
+					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allATKActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All Sortasi', href: '/sortasi' }, e)}
+						>
+							<span class="block text-left">All Sortasi</span>
+						</button> -->
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MonitoringSortasiActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'Monitoring Sortasi', href: '/sortasi/monitoring-sortasi' }, e)}
+						>
+							<span class="block text-left">Monitoring Sortasi</span>
 							<Badge color="green" size="sm">New</Badge>
 						</button>
 					</div>
