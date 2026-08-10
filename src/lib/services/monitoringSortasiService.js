@@ -63,3 +63,19 @@ export async function getMonitoringSortasi(date) {
 		throw error;
 	}
 }
+
+/**
+ * Fetch container details for a specific sorting process (nopick).
+ * @param {string} nopick - No Pick identifier
+ */
+export async function getMonitoringSortasiDetails(nopick) {
+	try {
+		const response = await apiFetch(`/monitoring/${encodeURIComponent(nopick)}/details`, {
+			method: 'GET'
+		});
+		return response;
+	} catch (error) {
+		logger.error(`[monitoringSortasiService.getMonitoringSortasiDetails] Error: ${error.message}`);
+		throw error;
+	}
+}

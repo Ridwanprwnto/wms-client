@@ -1,15 +1,69 @@
 <script lang="ts">
-	import { 
-		Card, Heading, Progressbar, Badge, Button, Input, Label,
-		Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Search, Select
+	import {
+		Card,
+		Heading,
+		Progressbar,
+		Badge,
+		Button,
+		Input,
+		Label,
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell,
+		Search,
+		Select,
+		Modal,
+		Spinner
 	} from 'flowbite-svelte';
-	import { InfoCircleSolid, SearchOutline, CheckCircleSolid, ClockSolid, DotsHorizontalOutline, ExclamationCircleOutline, ArrowsRepeatOutline, SortOutline, AdjustmentsHorizontalOutline } from 'flowbite-svelte-icons';
+	import {
+		InfoCircleSolid,
+		SearchOutline,
+		CheckCircleSolid,
+		ClockSolid,
+		DotsHorizontalOutline,
+		ExclamationCircleOutline,
+		ArrowsRepeatOutline,
+		SortOutline,
+		AdjustmentsHorizontalOutline,
+		MapPinSolid,
+		UserCircleSolid
+	} from 'flowbite-svelte-icons';
 
 	export let data;
 	$: monitoringData = data?.monitoringData || [];
 	$: selectedDate = data?.selectedDate || '';
 
 	let inputDate = selectedDate;
+
+	// ─── Modal & Details State ───────────────────────────────
+	let detailModal = false;
+	let selectedProcess = null;
+	let containerDetails = [];
+	let isLoadingDetails = false;
+
+	async function openDetails(item) {
+		selectedProcess = item;
+		detailModal = true;
+		isLoadingDetails = true;
+		containerDetails = [];
+		try {
+			const res = await fetch(
+				`/sortasi/monitoring-sortasi/api?nopick=${encodeURIComponent(item.nopick)}`
+			);
+			if (!res.ok) throw new Error('Gagal mengambil detail container');
+			const json = await res.json();
+			if (json && json.data) {
+				containerDetails = json.data;
+			}
+		} catch (error) {
+			console.error('Failed to load container details', error);
+		} finally {
+			isLoadingDetails = false;
+		}
+	}
 
 	// ─── Client-side Filter State ────────────────────────────
 	let searchValue = '';
@@ -19,7 +73,7 @@
 		{ value: 'all', name: 'Semua Status' },
 		{ value: 'in_progress', name: 'In Progress' },
 		{ value: 'completed', name: 'Completed' },
-		{ value: 'pending', name: 'Pending' },
+		{ value: 'pending', name: 'Pending' }
 	];
 
 	// ─── Filtered data (reactive) ────────────────────────────
@@ -27,8 +81,8 @@
 		const q = searchValue.toLowerCase().trim();
 		const matchSearch = q
 			? item.nopick?.toLowerCase().includes(q) ||
-			  item.tokoname?.toLowerCase().includes(q) ||
-			  item.toko?.toLowerCase().includes(q)
+				item.tokoname?.toLowerCase().includes(q) ||
+				item.toko?.toLowerCase().includes(q)
 			: true;
 		const matchStatus = statusFilter === 'all' ? true : item.status === statusFilter;
 		return matchSearch && matchStatus;
@@ -36,9 +90,9 @@
 
 	// ─── Summary stats ───────────────────────────────────────
 	$: totalPick = monitoringData.length;
-	$: totalCompleted = monitoringData.filter(i => i.status === 'completed').length;
-	$: totalInProgress = monitoringData.filter(i => i.status === 'in_progress').length;
-	$: totalPending = monitoringData.filter(i => i.status === 'pending').length;
+	$: totalCompleted = monitoringData.filter((i) => i.status === 'completed').length;
+	$: totalInProgress = monitoringData.filter((i) => i.status === 'in_progress').length;
+	$: totalPending = monitoringData.filter((i) => i.status === 'pending').length;
 
 	function resetFilter() {
 		searchValue = '';
@@ -52,7 +106,7 @@
 		if (percentage > 0) return 'yellow';
 		return 'gray';
 	}
-	
+
 	function getStatusConfig(status) {
 		const s = status?.toLowerCase();
 		if (s === 'completed') return { color: 'green', icon: CheckCircleSolid, label: 'Completed' };
@@ -60,7 +114,7 @@
 		if (s === 'pending') return { color: 'yellow', icon: DotsHorizontalOutline, label: 'Pending' };
 		return { color: 'gray', icon: InfoCircleSolid, label: 'Unknown' };
 	}
-	
+
 	function formatDate(dateString) {
 		if (!dateString) return '-';
 		return new Date(dateString).toLocaleString('id-ID', {
@@ -82,7 +136,7 @@
 					Monitoring Sortasi
 				</Heading>
 				<p class="text-sm text-gray-500 dark:text-gray-400">
-					Pantau progress penyortiran barang
+					Pantau progress penyortiran container barang
 				</p>
 			</div>
 			<form action="" method="GET" class="flex items-center gap-3">
@@ -106,14 +160,19 @@
 			<p class="text-sm mt-1">Pilih tanggal terlebih dahulu untuk menampilkan data</p>
 		</div>
 	{:else if monitoringData.length === 0}
-		<div class="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm">
+		<div
+			class="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm"
+		>
 			<ExclamationCircleOutline class="w-4 h-4 flex-shrink-0" />
-			Tidak/belum ada data proses penyortiran barang atas tanggal <strong class="ml-1">{selectedDate}</strong>
+			Tidak/belum ada data proses penyortiran barang atas tanggal
+			<strong class="ml-1">{selectedDate}</strong>
 		</div>
 	{:else}
 		<!-- ── Summary Cards ───────────────────────────────────── -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-			<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+			<div
+				class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+			>
 				<div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg flex-shrink-0">
 					<SortOutline class="w-5 h-5 text-blue-600 dark:text-blue-300" />
 				</div>
@@ -123,7 +182,9 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+			<div
+				class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+			>
 				<div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg flex-shrink-0">
 					<CheckCircleSolid class="w-5 h-5 text-green-600 dark:text-green-300" />
 				</div>
@@ -133,7 +194,9 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+			<div
+				class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+			>
 				<div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex-shrink-0">
 					<ClockSolid class="w-5 h-5 text-yellow-600 dark:text-yellow-300" />
 				</div>
@@ -143,7 +206,9 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+			<div
+				class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+			>
 				<div class="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg flex-shrink-0">
 					<DotsHorizontalOutline class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				</div>
@@ -181,7 +246,9 @@
 					<Badge color="blue">Kata kunci: "{searchValue}"</Badge>
 				{/if}
 				{#if statusFilter !== 'all'}
-					<Badge color="indigo">Status: {statusOptions.find(o => o.value === statusFilter)?.name}</Badge>
+					<Badge color="indigo"
+						>Status: {statusOptions.find((o) => o.value === statusFilter)?.name}</Badge
+					>
 				{/if}
 				<span>— {filteredData.length} hasil ditemukan</span>
 			</div>
@@ -194,7 +261,7 @@
 					<TableHeadCell>Toko</TableHeadCell>
 					<TableHeadCell>No Pick & SP</TableHeadCell>
 					<TableHeadCell>Gate</TableHeadCell>
-					<TableHeadCell>Tgl Split</TableHeadCell>
+					<TableHeadCell>Tgl Waktu Split</TableHeadCell>
 					<TableHeadCell>Status</TableHeadCell>
 					<TableHeadCell>Progress</TableHeadCell>
 				</TableHead>
@@ -202,26 +269,42 @@
 					{#if filteredData.length === 0}
 						<TableBodyRow>
 							<TableBodyCell colspan={6}>
-								<div class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+								<div
+									class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500"
+								>
 									<ExclamationCircleOutline class="w-12 h-12 mb-3 opacity-40" />
 									<p class="font-medium">Tidak ada data sortasi</p>
 									<p class="text-sm mt-1">
-										{searchValue || statusFilter !== 'all' ? 'Coba ubah kata kunci atau filter status' : 'Belum ada data sortasi tersedia'}
+										{searchValue || statusFilter !== 'all'
+											? 'Coba ubah kata kunci atau filter status'
+											: 'Belum ada data sortasi tersedia'}
 									</p>
 								</div>
 							</TableBodyCell>
 						</TableBodyRow>
 					{:else}
 						{#each filteredData as item}
-							{@const statusConfig = getStatusConfig(item.status)}
-							<TableBodyRow>
+							<TableBodyRow
+								class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+								onclick={() => {
+									openDetails(item);
+								}}
+							>
 								<TableBodyCell>
-									<div class="font-medium text-gray-900 dark:text-white">{item.tokoname || '-'}</div>
-									<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Kode: {item.toko || '-'}</div>
+									<div class="font-medium text-gray-900 dark:text-white">
+										{item.tokoname || '-'}
+									</div>
+									<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+										Kode: {item.toko || '-'}
+									</div>
 								</TableBodyCell>
 								<TableBodyCell>
-									<div class="font-mono text-sm font-medium text-gray-900 dark:text-white">{item.nopick}</div>
-									<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">SP: {item.no_urutsp || '-'}</div>
+									<div class="font-mono text-sm font-medium text-gray-900 dark:text-white">
+										{item.nopick}
+									</div>
+									<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+										SP: {item.no_urutsp || '-'}
+									</div>
 								</TableBodyCell>
 								<TableBodyCell>
 									<Badge color="dark" class="font-mono text-xs">{item.gate || '-'}</Badge>
@@ -230,20 +313,27 @@
 									{formatDate(item.created_at)}
 								</TableBodyCell>
 								<TableBodyCell>
-									<Badge color={statusConfig.color} class="flex items-center w-fit gap-1 px-2.5 py-1 whitespace-nowrap">
-										<svelte:component this={statusConfig.icon} class="w-3 h-3" />
-										{statusConfig.label}
+									<Badge
+										color={getStatusConfig(item.status).color}
+										class="flex items-center w-fit gap-1 px-2.5 py-1 whitespace-nowrap"
+									>
+										<svelte:component this={getStatusConfig(item.status).icon} class="w-3 h-3" />
+										{getStatusConfig(item.status).label}
 									</Badge>
 								</TableBodyCell>
 								<TableBodyCell class="w-52">
-									<div class="flex justify-between text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">
+									<div
+										class="flex justify-between text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300"
+									>
 										<span class="font-semibold">{item.progress_percentage}%</span>
-										<span class="text-gray-500">({item.scanned_containers}/{item.total_containers})</span>
+										<span class="text-gray-500"
+											>({item.scanned_containers}/{item.total_containers})</span
+										>
 									</div>
-									<Progressbar 
-										progress={item.progress_percentage} 
-										color={getProgressColor(item.progress_percentage)} 
-										size="h-2" 
+									<Progressbar
+										progress={item.progress_percentage}
+										color={getProgressColor(item.progress_percentage)}
+										size="h-2"
 									/>
 								</TableBodyCell>
 							</TableBodyRow>
@@ -254,3 +344,134 @@
 		</div>
 	{/if}
 </Card>
+
+<!-- ── Detail Modal ────────────────────────────────────────── -->
+<Modal
+	title={`Detail Container - ${selectedProcess?.nopick || ''}`}
+	bind:open={detailModal}
+	size="xl"
+	outsideclose
+>
+	{#if selectedProcess}
+		<div class="mb-4">
+			<div class="flex items-center justify-between mb-4">
+				<div>
+					<h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+						{selectedProcess.tokoname}
+					</h4>
+					<p class="text-sm text-gray-500 dark:text-gray-400">
+						Kode Toko: {selectedProcess.toko} | SP: {selectedProcess.no_urutsp}
+					</p>
+				</div>
+				<Badge color={getStatusConfig(selectedProcess.status).color} class="text-sm">
+					{getStatusConfig(selectedProcess.status).label}
+				</Badge>
+			</div>
+
+			{#if !isLoadingDetails && containerDetails.length > 0}
+				<div class="flex flex-wrap gap-3 mb-4">
+					<div
+						class="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
+					>
+						<span class="text-xs text-blue-600 dark:text-blue-400 font-medium">Total Container</span
+						>
+						<span class="text-sm font-bold text-blue-700 dark:text-blue-300"
+							>{containerDetails.length}</span
+						>
+					</div>
+					<div
+						class="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg"
+					>
+						<CheckCircleSolid class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+						<span class="text-xs text-green-600 dark:text-green-400 font-medium">Scanned</span>
+						<span class="text-sm font-bold text-green-700 dark:text-green-300"
+							>{containerDetails.filter((d) => d.is_scanned).length}</span
+						>
+					</div>
+					<div
+						class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+					>
+						<DotsHorizontalOutline class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+						<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Pending</span>
+						<span class="text-sm font-bold text-gray-700 dark:text-gray-300"
+							>{containerDetails.filter((d) => !d.is_scanned).length}</span
+						>
+					</div>
+				</div>
+			{/if}
+
+			{#if isLoadingDetails}
+				<div class="flex justify-center items-center py-12">
+					<Spinner size="8" class="mr-3" />
+					<span class="text-gray-500 dark:text-gray-400">Memuat data container...</span>
+				</div>
+			{:else if containerDetails.length === 0}
+				<div class="text-center py-8 text-gray-500 dark:text-gray-400">
+					<ExclamationCircleOutline class="mx-auto h-8 w-8 mb-2 opacity-40" />
+					<p>Tidak ada data container untuk proses ini</p>
+				</div>
+			{:else}
+				<div
+					class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 max-h-96"
+				>
+					<Table hoverable={true}>
+						<TableHead class="sticky top-0 bg-gray-50 dark:bg-gray-700 z-10">
+							<TableHeadCell>No Container</TableHeadCell>
+							<TableHeadCell>Zona</TableHeadCell>
+							<TableHeadCell>Status Scan</TableHeadCell>
+							<TableHeadCell>Waktu Scan</TableHeadCell>
+							<TableHeadCell>Discan Oleh</TableHeadCell>
+						</TableHead>
+						<TableBody>
+							{#each containerDetails as detail}
+								<TableBodyRow>
+									<TableBodyCell class="font-mono font-medium">{detail.dusno}</TableBodyCell>
+									<TableBodyCell>
+										<Badge color="light" class="flex items-center w-fit gap-1">
+											<MapPinSolid class="w-3 h-3 text-gray-500" />
+											{detail.zona || '-'}
+										</Badge>
+									</TableBodyCell>
+									<TableBodyCell>
+										{#if detail.is_scanned}
+											<Badge color="green" class="flex items-center w-fit gap-1 px-2 py-0.5">
+												<CheckCircleSolid class="w-3 h-3" /> Scanned
+											</Badge>
+										{:else}
+											<Badge color="gray" class="flex items-center w-fit gap-1 px-2 py-0.5">
+												<DotsHorizontalOutline class="w-3 h-3" /> Pending
+											</Badge>
+										{/if}
+									</TableBodyCell>
+									<TableBodyCell class="text-sm text-gray-500">
+										{formatDate(detail.scanned_at)}
+									</TableBodyCell>
+									<TableBodyCell>
+										{#if detail.scanned_by}
+											<div
+												class="flex items-center gap-1.5 text-sm font-medium text-gray-900 dark:text-gray-300"
+											>
+												<UserCircleSolid class="w-4 h-4 text-gray-400" />
+												{detail.scanned_by}
+											</div>
+										{:else}
+											<span class="text-gray-400">-</span>
+										{/if}
+									</TableBodyCell>
+								</TableBodyRow>
+							{/each}
+						</TableBody>
+					</Table>
+				</div>
+			{/if}
+		</div>
+	{/if}
+	<svelte:fragment slot="footer">
+		<Button
+			color="alternative"
+			onclick={() => {
+				detailModal = false;
+			}}>Tutup</Button
+		>
+	</svelte:fragment>
+</Modal>
