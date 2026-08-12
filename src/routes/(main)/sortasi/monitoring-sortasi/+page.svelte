@@ -115,6 +115,13 @@
 		return { color: 'gray', icon: InfoCircleSolid, label: 'Unknown' };
 	}
 
+	function getContainerStatusConfig(status) {
+		if (status == 1 || status === true || String(status).toLowerCase() === 'true') {
+			return { color: 'green', icon: CheckCircleSolid, label: 'Finish' };
+		}
+		return { color: 'yellow', icon: ClockSolid, label: 'On Proses' };
+	}
+
 	function formatDate(dateString) {
 		if (!dateString) return '-';
 		return new Date(dateString).toLocaleString('id-ID', {
@@ -261,8 +268,9 @@
 					<TableHeadCell>Toko</TableHeadCell>
 					<TableHeadCell>No Pick & SP</TableHeadCell>
 					<TableHeadCell>Gate</TableHeadCell>
-					<TableHeadCell>Tgl Waktu Split</TableHeadCell>
-					<TableHeadCell>Status</TableHeadCell>
+					<TableHeadCell>Tgl Waktu Proses</TableHeadCell>
+					<TableHeadCell>Jumlah Pemakaian Container</TableHeadCell>
+					<TableHeadCell>Status Sortasi</TableHeadCell>
 					<TableHeadCell>Progress</TableHeadCell>
 				</TableHead>
 				<TableBody>
@@ -311,6 +319,15 @@
 								</TableBodyCell>
 								<TableBodyCell class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
 									{formatDate(item.created_at)}
+								</TableBodyCell>
+								<TableBodyCell>
+									<Badge
+										color={getContainerStatusConfig(item.fscanfraction).color}
+										class="flex items-center w-fit gap-1 px-2.5 py-1 whitespace-nowrap"
+									>
+										<svelte:component this={getContainerStatusConfig(item.fscanfraction).icon} class="w-3 h-3" />
+										{getContainerStatusConfig(item.fscanfraction).label}
+									</Badge>
 								</TableBodyCell>
 								<TableBodyCell>
 									<Badge
