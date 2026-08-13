@@ -269,7 +269,7 @@
 					<TableHeadCell>No Pick & SP</TableHeadCell>
 					<TableHeadCell>Gate</TableHeadCell>
 					<TableHeadCell>Tgl Waktu Proses</TableHeadCell>
-					<TableHeadCell>Jumlah Pemakaian Container</TableHeadCell>
+					<TableHeadCell>Status Pemakaian Container</TableHeadCell>
 					<TableHeadCell>Status Sortasi</TableHeadCell>
 					<TableHeadCell>Progress</TableHeadCell>
 				</TableHead>
