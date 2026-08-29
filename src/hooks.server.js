@@ -65,6 +65,13 @@ export async function handle({ event, resolve }) {
 		'/support'
 	];
 
+	// Routes yang hanya boleh diakses oleh role SUPPORT
+	const supportOnlyRoutes = [
+		'/webservice-dc',
+		'/webservice-dpd',
+		'/support'
+	];
+
 	// Jika mengakses logout route, biarkan lewat (akan dihandle oleh +page.server.js)
 	if (pathname === '/logout') {
 		logger.info('Logout route accessed', { pathname, hasToken: !!token });
@@ -233,6 +240,36 @@ export async function handle({ event, resolve }) {
 			// Hapus cookies dan redirect ke login
 			deleteCookies(event);
 			throw redirect(307, '/login');
+		}
+	}
+
+	// Role-based guard: hanya SUPPORT yang boleh mengakses supportOnlyRoutes
+	if (supportOnlyRoutes.some((route) => pathname.startsWith(route))) {
+		const userCookie = event.cookies.get('user');
+		let groupName = null;
+
+		if (userCookie) {
+			try {
+				const parsedUser = JSON.parse(userCookie);
+				groupName = parsedUser?.groupName?.toUpperCase();
+			} catch (e) {
+				logger.error('Failed to parse user cookie in role guard', e);
+			}
+		}
+
+		if (groupName !== 'SUPPORT') {
+			logger.warn('Forbidden: non-SUPPORT role attempted to access SUPPORT-only route', {
+				pathname,
+				groupName: groupName || 'unknown',
+				clientIP
+			});
+			logger.logSecurity('forbidden_route_access', 'medium', {
+				pathname,
+				groupName: groupName || 'unknown',
+				clientIP,
+				reason: 'insufficient_role'
+			});
+			throw redirect(307, '/dashboard');
 		}
 	}
 

@@ -10,6 +10,9 @@
 	let isSidebarOpen = false;
 	let isLargeScreen = false;
 
+	// Get user data including groupName for role-based menu
+	$: user = $page.data?.user || null;
+
 	// Check screen size for responsive behavior
 	function checkScreenSize() {
 		if (typeof window !== 'undefined') {
@@ -93,7 +96,7 @@
 
 	<!-- Sidebar with proper mobile handling -->
 	<div class="sidebar-container">
-		<Sidebar bind:isSidebarOpen />
+		<Sidebar bind:isSidebarOpen {user} />
 	</div>
 
 	<!-- Main content area -->
