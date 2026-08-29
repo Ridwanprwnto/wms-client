@@ -23,6 +23,11 @@
 	import { PUBLIC_APP_VERSION, PUBLIC_APP_DEVELOPER, PUBLIC_APP_DEVELOPER_URL } from '$env/static/public';
 
 	export let isSidebarOpen;
+	export let user = null;
+
+	// Role-based menu visibility
+	// Semua menu ditampilkan untuk SUPPORT, role lain hanya lihat Main Menu
+	$: isSupport = user?.groupName?.toUpperCase() === 'SUPPORT';
 
 	// Get current path for active states
 	$: currentPath = $page.url.pathname;
@@ -232,16 +237,17 @@
 			</div>
 		</nav>
 
-		<!-- Divider -->
-		<hr class="my-4 border-gray-200 dark:border-gray-700" />
+		{#if isSupport}
+			<!-- Divider -->
+			<hr class="my-4 border-gray-200 dark:border-gray-700" />
 
-		<!-- External Service section -->
-		<nav class="space-y-2">
-			<p
-				class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-			>
-				External Services
-			</p>
+			<!-- External Service section -->
+			<nav class="space-y-2">
+				<p
+					class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+				>
+					External Services
+				</p>
 
 			<!-- Web Service DC Dropdown -->
 			<div>
@@ -355,18 +361,18 @@
 					</div>
 				{/if}
 			</div>
-		</nav>
+			</nav>
 
-		<!-- Divider -->
-		<hr class="my-4 border-gray-200 dark:border-gray-700" />
+			<!-- Divider -->
+			<hr class="my-4 border-gray-200 dark:border-gray-700" />
 
-		<!-- Settings section -->
-		<nav class="space-y-2">
-			<p
-				class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-			>
-				Settings
-			</p>
+			<!-- Settings section -->
+			<nav class="space-y-2">
+				<p
+					class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+				>
+					Settings
+				</p>
 
 			<div>
 				<button
@@ -385,7 +391,9 @@
 					<Badge color="blue" size="sm">Beta</Badge>
 				</button>
 			</div>
-		</nav>
+			</nav>
+		{/if}
+<!-- End role-based menu -->
 
 		<!-- Footer -->
 		<div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
