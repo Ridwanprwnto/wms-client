@@ -33,10 +33,19 @@
 	} from 'flowbite-svelte-icons';
 
 	export let data;
+	$: selectedMethod = data?.selectedMethod || 'all';
 	$: monitoringData = data?.monitoringData || [];
+	$: console.log('monitoringData:', monitoringData.slice(0,2));
 	$: selectedDate = data?.selectedDate || '';
 
 	let inputDate = selectedDate;
+	let inputMethod = selectedMethod;
+	
+	const methodOptions = [
+		{ value: 'all', name: 'Semua Metode' },
+		{ value: 'scan', name: 'Scan Container' },
+		{ value: 'count', name: 'Input Container' }
+	];
 
 	// ─── Modal & Details State ───────────────────────────────
 	let detailModal = false;
@@ -56,7 +65,14 @@
 			if (!res.ok) throw new Error('Gagal mengambil detail container');
 			const json = await res.json();
 			if (json && json.data) {
-				containerDetails = json.data;
+				if (Array.isArray(json.data)) {
+					selectedProcess.scan_method = "scan";
+					containerDetails = json.data;
+				} else {
+					selectedProcess.scan_method = json.data.method || "scan";
+					containerDetails = json.data.details || [];
+					selectedProcess.countLogs = json.data.countLogs || [];
+				}
 			}
 		} catch (error) {
 			console.error('Failed to load container details', error);
@@ -85,7 +101,8 @@
 				item.toko?.toLowerCase().includes(q)
 			: true;
 		const matchStatus = statusFilter === 'all' ? true : item.status === statusFilter;
-		return matchSearch && matchStatus;
+		const matchMethod = selectedMethod === 'all' ? true : item.scan_method === selectedMethod;
+		return matchSearch && matchStatus && matchMethod;
 	});
 
 	// ─── Summary stats ───────────────────────────────────────
@@ -150,6 +167,10 @@
 				<div>
 					<Label for="date-filter" class="sr-only">Tanggal Pick</Label>
 					<Input id="date-filter" name="date" type="date" bind:value={inputDate} size="md" />
+				</div>
+				<div>
+					<Label for="method-filter" class="sr-only">Metode Sortasi</Label>
+					<Select id="method-filter" name="method" bind:value={inputMethod} size="md" class="min-w-[160px]" items={methodOptions} />
 				</div>
 				<Button color="primary" type="submit" disabled={!inputDate}>
 					<SearchOutline class="w-4 h-4 me-2" />
@@ -276,7 +297,7 @@
 				<TableBody>
 					{#if filteredData.length === 0}
 						<TableBodyRow>
-							<TableBodyCell colspan={6}>
+							<TableBodyCell colspan={7}>
 								<div
 									class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500"
 								>
