@@ -20,14 +20,21 @@
 	} from 'flowbite-svelte-icons';
 
 	import { showInfo } from '$lib/utils/alertUtils.js';
-	import { PUBLIC_APP_VERSION, PUBLIC_APP_DEVELOPER, PUBLIC_APP_DEVELOPER_URL } from '$env/static/public';
+	import {
+		PUBLIC_APP_VERSION,
+		PUBLIC_APP_DEVELOPER,
+		PUBLIC_APP_DEVELOPER_URL
+	} from '$env/static/public';
 
 	export let isSidebarOpen;
 	export let user = null;
 
-	// Role-based menu visibility
-	// Semua menu ditampilkan untuk SUPPORT, role lain hanya lihat Main Menu
+	// Role-based menu visibility:
+	// - SUPPORT   : semua menu (Main Menu + External Services + Settings)
+	// - WAREHOUSE : Main Menu + External Services terbatas (hanya Webservices DC > Grup Pertemanan)
+	// - Role lain : hanya Main Menu
 	$: isSupport = user?.groupName?.toUpperCase() === 'SUPPORT';
+	$: isWarehouse = user?.groupName?.toUpperCase() === 'WAREHOUSE';
 
 	// Get current path for active states
 	$: currentPath = $page.url.pathname;
@@ -227,7 +234,11 @@
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {MonitoringSortasiActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
 								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) => handleNavClick({ label: 'Monitoring Sortasi', href: '/sortasi/monitoring-sortasi' }, e)}
+							on:click={(e) =>
+								handleNavClick(
+									{ label: 'Monitoring Sortasi', href: '/sortasi/monitoring-sortasi' },
+									e
+								)}
 						>
 							<span class="block text-left">Monitoring Sortasi</span>
 							<Badge color="green" size="sm">New</Badge>
@@ -249,32 +260,32 @@
 					External Services
 				</p>
 
-			<!-- Web Service DC Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDCActive
-						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('WSDC')}
-					aria-expanded={openDropdowns['WSDC'] ? 'true' : 'false'}
-				>
-					<div class="flex items-center">
-						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<GridOutline class="w-5 h-5 text-gray-500" />
+				<!-- Web Service DC Dropdown -->
+				<div>
+					<button
+						type="button"
+						class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDCActive
+							? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+							: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						on:click={() => toggleDropdown('WSDC')}
+						aria-expanded={openDropdowns['WSDC'] ? 'true' : 'false'}
+					>
+						<div class="flex items-center">
+							<div class="flex-shrink-0 w-5 h-5 mr-3">
+								<GridOutline class="w-5 h-5 text-gray-500" />
+							</div>
+							<span>Webservices DC</span>
 						</div>
-						<span>Webservices DC</span>
-					</div>
-					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
-							? 'rotate-180'
-							: ''}"
-					/>
-				</button>
+						<ChevronDownOutline
+							class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
+								? 'rotate-180'
+								: ''}"
+						/>
+					</button>
 
-				{#if openDropdowns['WSDC']}
-					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<!-- <button
+					{#if openDropdowns['WSDC']}
+						<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+							<!-- <button
 							type="button"
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDCActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
@@ -283,63 +294,63 @@
 						>
 							<span class="block text-left">All Webservice DC</span>
 						</button> -->
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick(
-									{ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' },
-									e
-								)}
-						>
-							<span class="block text-left">Grup Pertemanan Tablok</span>
-						</button>
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMappingActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick(
-									{ label: 'Planogram Mapping', href: '/webservice-dc/planogram-mapping' },
-									e
-								)}
-						>
-							<span class="block text-left">Planogram Mapping</span>
-							<Badge color="purple" size="sm">Soon</Badge>
-						</button>
-					</div>
-				{/if}
-			</div>
-
-			<!-- Web Service DPD Dropdown -->
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDPDActive
-						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={() => toggleDropdown('WSDPD')}
-					aria-expanded={openDropdowns['WSDPD'] ? 'true' : 'false'}
-				>
-					<div class="flex items-center">
-						<div class="flex-shrink-0 w-5 h-5 mr-3">
-							<GridOutline class="w-5 h-5 text-gray-500" />
+							<button
+								type="button"
+								class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
+									? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+									: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+								on:click={(e) =>
+									handleNavClick(
+										{ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' },
+										e
+									)}
+							>
+								<span class="block text-left">Grup Pertemanan Tablok</span>
+							</button>
+							<button
+								type="button"
+								class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {PlanogramMappingActive
+									? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+									: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+								on:click={(e) =>
+									handleNavClick(
+										{ label: 'Planogram Mapping', href: '/webservice-dc/planogram-mapping' },
+										e
+									)}
+							>
+								<span class="block text-left">Planogram Mapping</span>
+								<Badge color="purple" size="sm">Soon</Badge>
+							</button>
 						</div>
-						<span>Webservices DPD</span>
-					</div>
-					<ChevronDownOutline
-						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDPD']
-							? 'rotate-180'
-							: ''}"
-					/>
-				</button>
+					{/if}
+				</div>
 
-				{#if openDropdowns['WSDPD']}
-					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
-						<!-- <button
+				<!-- Web Service DPD Dropdown -->
+				<div>
+					<button
+						type="button"
+						class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDPDActive
+							? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+							: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						on:click={() => toggleDropdown('WSDPD')}
+						aria-expanded={openDropdowns['WSDPD'] ? 'true' : 'false'}
+					>
+						<div class="flex items-center">
+							<div class="flex-shrink-0 w-5 h-5 mr-3">
+								<GridOutline class="w-5 h-5 text-gray-500" />
+							</div>
+							<span>Webservices DPD</span>
+						</div>
+						<ChevronDownOutline
+							class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDPD']
+								? 'rotate-180'
+								: ''}"
+						/>
+					</button>
+
+					{#if openDropdowns['WSDPD']}
+						<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+							<!-- <button
 							type="button"
 							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDPDActive
 								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
@@ -348,19 +359,22 @@
 						>
 							<span class="block text-left">All Webservice DPD</span>
 						</button> -->
-						<button
-							type="button"
-							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingOrdersActive
-								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
-								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
-							on:click={(e) =>
-								handleNavClick({ label: 'Booking PB Toko', href: '/webservice-dpd/booking-pb' }, e)}
-						>
-							<span class="block text-left">Booking PB Toko</span>
-						</button>
-					</div>
-				{/if}
-			</div>
+							<button
+								type="button"
+								class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {BookingOrdersActive
+									? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+									: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+								on:click={(e) =>
+									handleNavClick(
+										{ label: 'Booking PB Toko', href: '/webservice-dpd/booking-pb' },
+										e
+									)}
+							>
+								<span class="block text-left">Booking PB Toko</span>
+							</button>
+						</div>
+					{/if}
+				</div>
 			</nav>
 
 			<!-- Divider -->
@@ -374,26 +388,89 @@
 					Settings
 				</p>
 
-			<div>
-				<button
-					type="button"
-					class="cursor-pointer flex items-center p-3 text-base font-normal w-full rounded-lg transition-colors duration-200 {supportActive
-						? 'text-white bg-blue-600 hover:bg-blue-700'
-						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
-					on:click={(e) => handleNavClick({ label: 'Report Issue', href: '/support' }, e)}
+				<div>
+					<button
+						type="button"
+						class="cursor-pointer flex items-center p-3 text-base font-normal w-full rounded-lg transition-colors duration-200 {supportActive
+							? 'text-white bg-blue-600 hover:bg-blue-700'
+							: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						on:click={(e) => handleNavClick({ label: 'Report Issue', href: '/support' }, e)}
+					>
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<ExclamationCircleOutline
+								class="w-5 h-5 {supportActive ? 'text-white' : 'text-gray-500'}"
+							/>
+						</div>
+						<span class="flex-1 text-left">Report Issue</span>
+						<Badge color="blue" size="sm">Beta</Badge>
+					</button>
+				</div>
+			</nav>
+		{:else if isWarehouse}
+			<!-- Divider -->
+			<hr class="my-4 border-gray-200 dark:border-gray-700" />
+
+			<!-- External Service section -->
+			<nav class="space-y-2">
+				<p
+					class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
 				>
-					<div class="flex-shrink-0 w-5 h-5 mr-3">
-						<ExclamationCircleOutline
-							class="w-5 h-5 {supportActive ? 'text-white' : 'text-gray-500'}"
+					External Services
+				</p>
+
+				<!-- Web Service DC Dropdown -->
+				<div>
+					<button
+						type="button"
+						class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDCActive
+							? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+							: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						on:click={() => toggleDropdown('WSDC')}
+						aria-expanded={openDropdowns['WSDC'] ? 'true' : 'false'}
+					>
+						<div class="flex items-center">
+							<div class="flex-shrink-0 w-5 h-5 mr-3">
+								<GridOutline class="w-5 h-5 text-gray-500" />
+							</div>
+							<span>Webservices DC</span>
+						</div>
+						<ChevronDownOutline
+							class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
+								? 'rotate-180'
+								: ''}"
 						/>
-					</div>
-					<span class="flex-1 text-left">Report Issue</span>
-					<Badge color="blue" size="sm">Beta</Badge>
-				</button>
-			</div>
+					</button>
+
+					{#if openDropdowns['WSDC']}
+						<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+							<!-- <button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDCActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) => handleNavClick({ label: 'All Webservice DC', href: '/webservice-dc' }, e)}
+						>
+							<span class="block text-left">All Webservice DC</span>
+						</button> -->
+							<button
+								type="button"
+								class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {GrupPertemananActive
+									? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+									: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+								on:click={(e) =>
+									handleNavClick(
+										{ label: 'Grup Pertemanan', href: '/webservice-dc/grup-pertemanan' },
+										e
+									)}
+							>
+								<span class="block text-left">Grup Pertemanan Tablok</span>
+							</button>
+						</div>
+					{/if}
+				</div>
 			</nav>
 		{/if}
-<!-- End role-based menu -->
+		<!-- End role-based menu -->
 
 		<!-- Footer -->
 		<div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">

@@ -65,8 +65,24 @@ export async function handle({ event, resolve }) {
 		'/support'
 	];
 
-	// Routes yang hanya boleh diakses oleh role SUPPORT
-	const supportOnlyRoutes = [
+	// Peta akses route berdasarkan role:
+	// Setiap entry mendefinisikan route prefix yang DILARANG untuk role tersebut.
+	// Pengecekan dilakukan dengan pathname.startsWith(route)
+	const roleDeniedRoutes = {
+		// SUPPORT : akses penuh, tidak ada yang diblokir
+		SUPPORT: [],
+
+		// WAREHOUSE : boleh akses /webservice-dc/grup-pertemanan,
+		// tapi TIDAK boleh akses planogram-mapping, webservice-dpd, support
+		WAREHOUSE: [
+			'/webservice-dc/planogram-mapping',
+			'/webservice-dpd',
+			'/support'
+		]
+	};
+
+	// Routes yang hanya boleh diakses oleh role tertentu (semua role lain diblokir)
+	const restrictedRoutes = [
 		'/webservice-dc',
 		'/webservice-dpd',
 		'/support'
@@ -243,8 +259,8 @@ export async function handle({ event, resolve }) {
 		}
 	}
 
-	// Role-based guard: hanya SUPPORT yang boleh mengakses supportOnlyRoutes
-	if (supportOnlyRoutes.some((route) => pathname.startsWith(route))) {
+	// Role-based guard: periksa hak akses berdasarkan groupName user
+	if (restrictedRoutes.some((route) => pathname.startsWith(route))) {
 		const userCookie = event.cookies.get('user');
 		let groupName = null;
 
@@ -257,8 +273,22 @@ export async function handle({ event, resolve }) {
 			}
 		}
 
-		if (groupName !== 'SUPPORT') {
-			logger.warn('Forbidden: non-SUPPORT role attempted to access SUPPORT-only route', {
+		// Tentukan apakah akses diizinkan
+		let isForbidden = false;
+
+		if (!groupName) {
+			// Tidak ada info role → blokir
+			isForbidden = true;
+		} else if (roleDeniedRoutes[groupName]) {
+			// Role dikenal → cek apakah route ini masuk daftar yang dilarang untuk role ini
+			isForbidden = roleDeniedRoutes[groupName].some((denied) => pathname.startsWith(denied));
+		} else if (groupName !== 'SUPPORT') {
+			// Role tidak terdaftar di roleDeniedRoutes dan bukan SUPPORT → blokir semua restrictedRoutes
+			isForbidden = true;
+		}
+
+		if (isForbidden) {
+			logger.warn('Forbidden: role tidak memiliki hak akses ke route ini', {
 				pathname,
 				groupName: groupName || 'unknown',
 				clientIP
