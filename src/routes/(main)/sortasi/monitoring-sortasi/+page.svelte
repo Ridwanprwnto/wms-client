@@ -16,7 +16,8 @@
 		Search,
 		Select,
 		Modal,
-		Spinner
+		Spinner,
+		Toast
 	} from 'flowbite-svelte';
 	import {
 		InfoCircleSolid,
@@ -29,18 +30,20 @@
 		SortOutline,
 		AdjustmentsHorizontalOutline,
 		MapPinSolid,
-		UserCircleSolid
+		UserCircleSolid,
+		RefreshOutline,
+		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 
 	export let data;
 	$: selectedMethod = data?.selectedMethod || 'all';
 	$: monitoringData = data?.monitoringData || [];
-	$: console.log('monitoringData:', monitoringData.slice(0,2));
+	$: console.log('monitoringData:', monitoringData.slice(0, 2));
 	$: selectedDate = data?.selectedDate || '';
 
 	let inputDate = selectedDate;
 	let inputMethod = selectedMethod;
-	
+
 	const methodOptions = [
 		{ value: 'all', name: 'Semua Metode' },
 		{ value: 'scan', name: 'Scan Container' },
@@ -52,6 +55,62 @@
 	let selectedProcess = null;
 	let containerDetails = [];
 	let isLoadingDetails = false;
+
+	// ─── Modal Reset Container State ─────────────────────────
+	let resetModal = false;
+	let resetTarget = null; // item yang akan direset
+	let isResetting = false;
+
+	// ─── Toast Notification State ────────────────────────────
+	let toastVisible = false;
+	let toastMessage = '';
+	let toastType = 'success'; // 'success' | 'error'
+	let toastTimer;
+
+	function showToast(message, type = 'success') {
+		toastMessage = message;
+		toastType = type;
+		toastVisible = true;
+		clearTimeout(toastTimer);
+		toastTimer = setTimeout(() => {
+			toastVisible = false;
+		}, 4000);
+	}
+
+	function openResetModal(event, item) {
+		event.stopPropagation(); // cegah row click (openDetails)
+		resetTarget = item;
+		resetModal = true;
+	}
+
+	async function confirmReset() {
+		if (!resetTarget) return;
+		isResetting = true;
+		try {
+			const res = await fetch(
+				`/sortasi/monitoring-sortasi/api?nopick=${encodeURIComponent(resetTarget.nopick)}`,
+				{ method: 'PUT' }
+			);
+			const json = await res.json();
+			if (!res.ok || json.status !== 'success') {
+				throw new Error(json.message || 'Gagal mereset status container');
+			}
+			// Update nilai fscanfraction secara lokal agar badge langsung berubah
+			monitoringData = monitoringData.map((d) =>
+				d.nopick === resetTarget.nopick ? { ...d, fscanfraction: 0 } : d
+			);
+			showToast(
+				`Status pemakaian container untuk ${resetTarget.nopick} berhasil direset.`,
+				'success'
+			);
+		} catch (err) {
+			showToast(err.message || 'Terjadi kesalahan saat mereset.', 'error');
+		} finally {
+			isResetting = false;
+			resetModal = false;
+			resetTarget = null;
+		}
+	}
 
 	async function openDetails(item) {
 		selectedProcess = item;
@@ -66,10 +125,10 @@
 			const json = await res.json();
 			if (json && json.data) {
 				if (Array.isArray(json.data)) {
-					selectedProcess.scan_method = "scan";
+					selectedProcess.scan_method = 'scan';
 					containerDetails = json.data;
 				} else {
-					selectedProcess.scan_method = json.data.method || "scan";
+					selectedProcess.scan_method = json.data.method || 'scan';
 					containerDetails = json.data.details || [];
 					selectedProcess.countLogs = json.data.countLogs || [];
 				}
@@ -170,7 +229,14 @@
 				</div>
 				<div>
 					<Label for="method-filter" class="sr-only">Metode Sortasi</Label>
-					<Select id="method-filter" name="method" bind:value={inputMethod} size="md" class="min-w-[160px]" items={methodOptions} />
+					<Select
+						id="method-filter"
+						name="method"
+						bind:value={inputMethod}
+						size="md"
+						class="min-w-[160px]"
+						items={methodOptions}
+					/>
 				</div>
 				<Button color="primary" type="submit" disabled={!inputDate}>
 					<SearchOutline class="w-4 h-4 me-2" />
@@ -293,11 +359,12 @@
 					<TableHeadCell>Status Pemakaian Container</TableHeadCell>
 					<TableHeadCell>Status Sortasi</TableHeadCell>
 					<TableHeadCell>Progress</TableHeadCell>
+					<TableHeadCell>Aksi</TableHeadCell>
 				</TableHead>
 				<TableBody>
 					{#if filteredData.length === 0}
 						<TableBodyRow>
-							<TableBodyCell colspan={7}>
+							<TableBodyCell colspan={8}>
 								<div
 									class="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500"
 								>
@@ -346,7 +413,10 @@
 										color={getContainerStatusConfig(item.fscanfraction).color}
 										class="flex items-center w-fit gap-1 px-2.5 py-1 whitespace-nowrap"
 									>
-										<svelte:component this={getContainerStatusConfig(item.fscanfraction).icon} class="w-3 h-3" />
+										<svelte:component
+											this={getContainerStatusConfig(item.fscanfraction).icon}
+											class="w-3 h-3"
+										/>
 										{getContainerStatusConfig(item.fscanfraction).label}
 									</Badge>
 								</TableBodyCell>
@@ -373,6 +443,20 @@
 										color={getProgressColor(item.progress_percentage)}
 										size="h-2"
 									/>
+								</TableBodyCell>
+								<!-- Kolom Aksi: Reset Status Pemakaian Container -->
+								<TableBodyCell>
+									<Button
+										size="xs"
+										color="red"
+										outline
+										title="Reset status pemakaian container"
+										onclick={(e) => openResetModal(e, item)}
+										class="whitespace-nowrap"
+									>
+										<RefreshOutline class="w-3.5 h-3.5 me-1.5" />
+										Reset
+									</Button>
 								</TableBodyCell>
 							</TableBodyRow>
 						{/each}
@@ -504,12 +588,85 @@
 			{/if}
 		</div>
 	{/if}
-	<svelte:fragment slot="footer">
+	<!-- Tombol footer -->
+	<div class="flex justify-end mt-4">
 		<Button
 			color="alternative"
 			onclick={() => {
 				detailModal = false;
 			}}>Tutup</Button
 		>
-	</svelte:fragment>
+	</div>
 </Modal>
+
+<!-- ── Modal Konfirmasi Reset Container ──────────────────── -->
+<Modal
+	title="Konfirmasi Reset Status Container"
+	bind:open={resetModal}
+	size="sm"
+	outsideclose={!isResetting}
+>
+	{#if resetTarget}
+		<div class="flex flex-col items-center text-center gap-4 py-2">
+			<div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+				<TrashBinOutline class="w-8 h-8 text-red-600 dark:text-red-400" />
+			</div>
+			<div>
+				<p class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+					Reset/Rubah Status Pemakaian Container
+				</p>
+				<p class="text-sm text-gray-500 dark:text-gray-400">
+					Proses ini akan merubah <strong>status pemakaian container</strong> pada No Pick
+					<span class="font-mono font-semibold text-gray-800 dark:text-gray-200"
+						>{resetTarget.nopick}</span
+					>
+					(<em>{resetTarget.toko + ' - ' + resetTarget.tokoname}</em>) menjadi
+					<strong>On Procces</strong>. Kemudian lakukan sync data pemakaian container pada SPS
+					Mobile.
+				</p>
+			</div>
+		</div>
+		<!-- Tombol aksi -->
+		<div class="flex justify-end gap-3 mt-6">
+			<Button
+				color="alternative"
+				disabled={isResetting}
+				onclick={() => {
+					resetModal = false;
+					resetTarget = null;
+				}}>Batalkan</Button
+			>
+			<Button color="red" disabled={isResetting} onclick={confirmReset}>
+				{#if isResetting}
+					<Spinner size="4" class="me-2" />
+					Memproses...
+				{:else}
+					<RefreshOutline class="w-4 h-4 me-1.5" />
+					Ya, Reset
+				{/if}
+			</Button>
+		</div>
+	{/if}
+</Modal>
+
+<!-- ── Toast Notification ────────────────────────────────── -->
+{#if toastVisible}
+	<div class="fixed bottom-6 right-6 z-50">
+		<Toast
+			color={toastType === 'success' ? 'green' : 'red'}
+			dismissable
+			on:close={() => {
+				toastVisible = false;
+			}}
+		>
+			<svelte:fragment slot="icon">
+				{#if toastType === 'success'}
+					<CheckCircleSolid class="w-5 h-5" />
+				{:else}
+					<ExclamationCircleOutline class="w-5 h-5" />
+				{/if}
+			</svelte:fragment>
+			{toastMessage}
+		</Toast>
+	</div>
+{/if}

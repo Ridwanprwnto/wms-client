@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getMonitoringSortasiDetails } from '$lib/services/monitoringSortasiService';
+import { getMonitoringSortasiDetails, resetContainerStatus } from '$lib/services/monitoringSortasiService';
 
 /**
  * GET /sortasi/monitoring-sortasi/api?nopick=xxx
@@ -17,6 +17,26 @@ export async function GET({ url }) {
 		return json(response);
 	} catch (err) {
 		console.error('[API /monitoring-sortasi/api] Error:', err.message);
+		return json({ status: 'error', message: err.message }, { status: 500 });
+	}
+}
+
+/**
+ * PUT /sortasi/monitoring-sortasi/api?nopick=xxx
+ * Reset status pemakaian container (fscanfraction → 0).
+ */
+export async function PUT({ url }) {
+	const nopick = url.searchParams.get('nopick');
+
+	if (!nopick) {
+		return json({ status: 'error', message: 'nopick diperlukan' }, { status: 400 });
+	}
+
+	try {
+		const response = await resetContainerStatus(nopick);
+		return json(response);
+	} catch (err) {
+		console.error('[API /monitoring-sortasi/api PUT] Error:', err.message);
 		return json({ status: 'error', message: err.message }, { status: 500 });
 	}
 }

@@ -79,3 +79,19 @@ export async function getMonitoringSortasiDetails(nopick) {
 		throw error;
 	}
 }
+
+/**
+ * Reset status pemakaian container (fscanfraction → 0) untuk nopick tertentu.
+ * @param {string} nopick - No Pick identifier
+ */
+export async function resetContainerStatus(nopick) {
+	try {
+		const response = await apiFetch(`/monitoring/${encodeURIComponent(nopick)}/reset-container`, {
+			method: 'PUT'
+		});
+		return response;
+	} catch (error) {
+		logger.error(`[monitoringSortasiService.resetContainerStatus] Error: ${error.message}`);
+		throw error;
+	}
+}
