@@ -11,21 +11,15 @@
 		TableBody,
 		TableBodyRow,
 		TableBodyCell,
-		Modal,
 		Select,
 		Spinner,
 		MultiSelect,
+		Badge,
+		ButtonGroup,
 		Hr
 	} from 'flowbite-svelte';
 	import { PlusOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { enhance } from '$app/forms';
-	import {
-		showSuccess,
-		showError,
-		showWarning,
-		showInfo,
-		handleApiResponse
-	} from '$lib/utils/alertUtils.js';
+	import { showSuccess, showError, showWarning, showInfo } from '$lib/utils/alertUtils.js';
 	import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 
 	/** @type {import('./$types').PageData} */
@@ -48,6 +42,9 @@
 	// Table rows untuk nearest groups
 	/** @type {Array<{id: number, line: string, rak: string[], lineOptions: Array<{value: string, name: string}>, rakOptions: Array<{value: string, name: string}>}>} */
 	let nearestGroups = [];
+
+	// Metode pemilihan rak (global untuk seluruh tabel)
+	let rakMode = 'manual'; // 'manual' | 'all'
 
 	let counter = 0;
 	let showModal = false;
@@ -274,7 +271,7 @@
 				}
 
 				group.rakOptions = rakOptions;
-				group.rak = [];
+				group.rak = rakMode === 'all' ? rakOptions.map((opt) => opt.value) : [];
 				nearestGroups = nearestGroups;
 
 				if (rakOptions.length === 0) {
@@ -287,6 +284,23 @@
 			console.error('Error fetching line rak:', error);
 			showError('Gagal memuat data rak');
 		}
+	}
+
+	/**
+	 * Ubah metode pemilihan rak untuk seluruh tabel.
+	 * Mode 'all' langsung memilih seluruh rak yang tersedia pada setiap baris.
+	 * Pilihan tetap bisa dikurangi lewat MultiSelect setelahnya.
+	 * @param {'manual' | 'all'} mode
+	 */
+	function setRakMode(mode) {
+		rakMode = mode;
+
+		if (mode !== 'all') return;
+
+		nearestGroups = nearestGroups.map((group) => {
+			if (group.rakOptions.length === 0) return group;
+			return { ...group, rak: group.rakOptions.map((opt) => opt.value) };
+		});
 	}
 
 	/**
@@ -472,6 +486,36 @@
 				<span></span> Data Pertemanan
 			</Heading>
 			<Hr />
+			<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex flex-wrap items-center gap-3">
+					<span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+						Metode Pemilihan Rak
+					</span>
+					<ButtonGroup size="sm">
+						<Button
+							type="button"
+							class="cursor-pointer"
+							color={rakMode === 'manual' ? 'blue' : 'light'}
+							onclick={() => setRakMode('manual')}
+						>
+							Manual
+						</Button>
+						<Button
+							type="button"
+							class="cursor-pointer"
+							color={rakMode === 'all' ? 'blue' : 'light'}
+							onclick={() => setRakMode('all')}
+						>
+							Semua Rak
+						</Button>
+					</ButtonGroup>
+				</div>
+				<p class="text-xs text-gray-500 dark:text-gray-400">
+					{rakMode === 'all'
+						? 'Semua rak pada line terpilih otomatis dipilih. Anda tetap bisa mengurangi pilihan lewat kolom Rak.'
+						: 'Pilih rak satu per satu pada kolom Rak.'}
+				</p>
+			</div>
 			<Table striped={false}>
 				<TableHead class="text-center">
 					<TableHeadCell>Line</TableHeadCell>
@@ -501,7 +545,7 @@
 							</TableBodyCell>
 						</TableBodyRow>
 					{:else}
-						{#each nearestGroups as group, index}
+						{#each nearestGroups as group, index (group.id)}
 							<TableBodyRow>
 								<TableBodyCell>
 									<Select
@@ -516,9 +560,19 @@
 									<MultiSelect
 										items={group.rakOptions}
 										bind:value={group.rak}
-										placeholder="Please Select"
+										placeholder={group.rakOptions.length
+											? 'Please Select'
+											: 'Pilih line terlebih dahulu'}
 										required
 									/>
+									<div
+										class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
+									>
+										<span>{group.rak.length} dari {group.rakOptions.length} rak dipilih</span>
+										{#if rakMode === 'all' && group.rakOptions.length > 0 && group.rak.length === group.rakOptions.length}
+											<Badge color="green">Semua</Badge>
+										{/if}
+									</div>
 								</TableBodyCell>
 								<TableBodyCell class="text-center">
 									<Button

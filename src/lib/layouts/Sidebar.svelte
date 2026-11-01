@@ -35,6 +35,7 @@
 	// - Role lain : hanya Main Menu
 	$: isSupport = user?.groupName?.toUpperCase() === 'SUPPORT';
 	$: isWarehouse = user?.groupName?.toUpperCase() === 'WAREHOUSE';
+	$: isReporting = user?.groupName?.toUpperCase() === 'REPORTING';
 
 	// Get current path for active states
 	$: currentPath = $page.url.pathname;
@@ -60,6 +61,7 @@
 	$: allWSDCActive = currentPath === '/web-service-dc';
 	$: GrupPertemananActive = currentPath === '/webservice-dc/grup-pertemanan';
 	$: PlanogramMappingActive = currentPath === '/webservice-dc/planogram-mapping';
+	$: TTDReturTokoActive = currentPath === '/webservice-dc/ttd-retok';
 
 	$: allWSDPDActive = currentPath === '/web-service-dpd';
 	$: BookingOrdersActive = currentPath === '/webservice-dpd/booking-pb';
@@ -321,6 +323,20 @@
 								<span class="block text-left">Planogram Mapping</span>
 								<Badge color="purple" size="sm">Soon</Badge>
 							</button>
+							<button
+								type="button"
+								class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {TTDReturTokoActive
+									? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+									: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+								on:click={(e) =>
+									handleNavClick(
+										{ label: 'Data TTD Retur Toko', href: '/webservice-dc/ttd-retok' },
+										e
+									)}
+							>
+								<span class="block text-left">Data TTD Retur Toko</span>
+								<Badge color="green" size="sm">New</Badge>
+							</button>
 						</div>
 					{/if}
 				</div>
@@ -469,6 +485,70 @@
 					{/if}
 				</div>
 			</nav>
+		{:else if isReporting}
+		<!-- Divider -->
+		<hr class="my-4 border-gray-200 dark:border-gray-700" />
+
+		<!-- External Service section -->
+		<nav class="space-y-2">
+			<p
+				class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+			>
+				External Services
+			</p>
+
+			<!-- Web Service DC Dropdown -->
+			<div>
+				<button
+					type="button"
+					class="cursor-pointer flex items-center justify-between p-3 w-full text-base font-normal rounded-lg transition-colors duration-200 {WSDCActive
+						? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
+						: 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					on:click={() => toggleDropdown('WSDC')}
+					aria-expanded={openDropdowns['WSDC'] ? 'true' : 'false'}
+				>
+					<div class="flex items-center">
+						<div class="flex-shrink-0 w-5 h-5 mr-3">
+							<GridOutline class="w-5 h-5 text-gray-500" />
+						</div>
+						<span>Webservices DC</span>
+					</div>
+					<ChevronDownOutline
+						class="w-4 h-4 transition-transform duration-200 {openDropdowns['WSDC']
+							? 'rotate-180'
+							: ''}"
+					/>
+				</button>
+
+				{#if openDropdowns['WSDC']}
+					<div class="ml-8 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+						<!-- <button
+						type="button"
+						class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {allWSDCActive
+							? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+							: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+						on:click={(e) => handleNavClick({ label: 'All Webservice DC', href: '/webservice-dc' }, e)}
+					>
+						<span class="block text-left">All Webservice DC</span>
+					</button> -->
+						<button
+							type="button"
+							class="cursor-pointer block w-full px-4 py-2 text-sm text-left transition-colors duration-200 rounded-md {TTDReturTokoActive
+								? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 font-medium'
+								: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							on:click={(e) =>
+								handleNavClick(
+									{ label: 'Data TTD Retur Toko', href: '/webservice-dc/ttd-retok' },
+									e
+								)}
+						>
+							<span class="block text-left">Data TTD Retur Toko</span>
+							<Badge color="green" size="sm">New</Badge>
+						</button>
+					</div>
+				{/if}
+			</div>
+		</nav>
 		{/if}
 		<!-- End role-based menu -->
 
