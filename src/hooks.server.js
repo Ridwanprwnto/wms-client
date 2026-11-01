@@ -61,6 +61,7 @@ export async function handle({ event, resolve }) {
 		'/atk/monitoring-stock',
 		'/webservice-dc/grup-pertemanan',
 		'/webservice-dc/planogram-mapping',
+		'/webservice-dc/ttd-retok',
 		'/webservice-dpd/booking-pb',
 		'/support'
 	];
@@ -75,6 +76,15 @@ export async function handle({ event, resolve }) {
 		// WAREHOUSE : boleh akses /webservice-dc/grup-pertemanan,
 		// tapi TIDAK boleh akses planogram-mapping, webservice-dpd, support
 		WAREHOUSE: [
+			'/webservice-dc/planogram-mapping',
+			'/webservice-dpd',
+			'/support'
+		],
+
+		// REPORTING : boleh akses /webservice-dc/ttd-retok,
+		// tapi TIDAK boleh akses grup-pertemanan, planogram-mapping, webservice-dpd, support
+		REPORTING: [
+			'/webservice-dc/grup-pertemanan',
 			'/webservice-dc/planogram-mapping',
 			'/webservice-dpd',
 			'/support'
