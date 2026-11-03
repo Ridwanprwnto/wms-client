@@ -55,10 +55,10 @@
 			}
 		}
 
-		// Kolom tanggal dari database berformat DD/MM/YYYY.
-		const dmyDate = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-		if (dmyDate) {
-			const [, day, month, year] = dmyDate;
+		// Kolom tanggal dari database berformat MM/DD/YYYY.
+		const mdyDate = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+		if (mdyDate) {
+			const [, month, day, year] = mdyDate;
 			const date = new Date(Number(year), Number(month) - 1, Number(day));
 			if (!Number.isNaN(date.getTime())) {
 				return date.toLocaleDateString('id-ID', {
